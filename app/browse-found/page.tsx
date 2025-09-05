@@ -212,20 +212,25 @@ export default function BrowseFoundItems() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
+      <div className="min-h-screen bg-black relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-black to-purple-900/20" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+        
+      <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-zinc-800">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span>Back to Home</span>
             </Link>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 text-primary rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm hover:scale-105 transition-all duration-200">
+                <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -234,42 +239,42 @@ export default function BrowseFoundItems() {
                   />
                 </svg>
               </div>
-              <span className="font-heading font-bold text-lg">Lost & Found VIT</span>
+              <span className="font-heading font-bold text-lg text-white">Lost & Found VIT</span>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 relative">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-heading font-bold text-foreground mb-2">Browse Found Items</h1>
-          <p className="text-muted-foreground">Search through items found by your fellow VIT students</p>
+          <h1 className="text-3xl font-heading font-bold text-white mb-2">Browse Found Items</h1>
+          <p className="text-zinc-400">Search through items found by your fellow VIT students</p>
         </div>
 
         <div className="mb-8">
           {!showReportForm ? (
-            <Card className="border-dashed border-2 border-primary/20 bg-primary/5">
+            <Card className="border-dashed border-2 border-blue-500/20 bg-blue-500/5 backdrop-blur-sm">
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Plus className="w-6 h-6 text-primary" />
+                  <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Plus className="w-6 h-6 text-blue-400" />
                   </div>
-                  <h3 className="font-heading font-semibold text-lg mb-2">Found an item?</h3>
-                  <p className="text-muted-foreground mb-4">Help a fellow student by reporting what you found</p>
-                  <Button onClick={() => setShowReportForm(true)} className="bg-primary hover:bg-primary/90">
+                  <h3 className="font-heading font-semibold text-lg mb-2 text-white">Found an item?</h3>
+                  <p className="text-zinc-400 mb-4">Help a fellow student by reporting what you found</p>
+                  <Button onClick={() => setShowReportForm(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
                     Report Found Item
                   </Button>
                 </div>
               </CardContent>
             </Card>
           ) : (
-            <Card>
+            <Card className="bg-zinc-900/50 backdrop-blur-sm border-zinc-700">
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Report Found Item</CardTitle>
-                  <CardDescription>Fill in the details of the item you found</CardDescription>
+                  <CardTitle className="text-white">Report Found Item</CardTitle>
+                  <CardDescription className="text-zinc-400">Fill in the details of the item you found</CardDescription>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setShowReportForm(false)}>
+                <Button variant="ghost" size="sm" onClick={() => setShowReportForm(false)} className="text-zinc-400 hover:text-white hover:bg-zinc-800">
                   <X className="w-4 h-4" />
                 </Button>
               </CardHeader>
@@ -277,28 +282,29 @@ export default function BrowseFoundItems() {
                 <form onSubmit={handleSubmitFoundItem} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-18">
-                      <Label htmlFor="itemName">Item Name *</Label>
+                      <Label htmlFor="itemName" className="text-zinc-300">Item Name *</Label>
                       <Input
                         id="itemName"
                         value={formData.itemName}
                         onChange={(e) => setFormData({ ...formData, itemName: e.target.value })}
                         placeholder="e.g., iPhone 13, Blue Backpack"
+                        className="bg-zinc-900/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500"
                         required
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="category">Category *</Label>
+                      <Label htmlFor="category" className="text-zinc-300">Category *</Label>
                       <Select
                         value={formData.category}
                         onValueChange={(value) => setFormData({ ...formData, category: value })}
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
+                        <SelectTrigger className="bg-zinc-900/50 border-zinc-700 text-white focus:border-blue-500">
+                          <SelectValue placeholder="Select category" className="text-zinc-500" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-zinc-900 border-zinc-700">
                           {categories.map((category) => (
-                            <SelectItem key={category} value={category}>
+                            <SelectItem key={category} value={category} className="text-white hover:bg-zinc-800 focus:bg-zinc-800">
                               {category}
                             </SelectItem>
                           ))}
@@ -307,17 +313,17 @@ export default function BrowseFoundItems() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="location">Location Found *</Label>
+                      <Label htmlFor="location" className="text-zinc-300">Location Found *</Label>
                       <Select
                         value={formData.location}
                         onValueChange={(value) => setFormData({ ...formData, location: value })}
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Where did you find it?" />
+                        <SelectTrigger className="bg-zinc-900/50 border-zinc-700 text-white focus:border-blue-500">
+                          <SelectValue placeholder="Where did you find it?" className="text-zinc-500" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-zinc-900 border-zinc-700">
                           {locations.map((location) => (
-                            <SelectItem key={location} value={location}>
+                            <SelectItem key={location} value={location} className="text-white hover:bg-zinc-800 focus:bg-zinc-800">
                               {location}
                             </SelectItem>
                           ))}
@@ -326,37 +332,39 @@ export default function BrowseFoundItems() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="dateFound">Date Found *</Label>
+                      <Label htmlFor="dateFound" className="text-zinc-300">Date Found *</Label>
                       <Input
                         id="dateFound"
                         type="date"
                         value={formData.dateFound}
                         onChange={(e) => setFormData({ ...formData, dateFound: e.target.value })}
                         max={new Date().toISOString().split("T")[0]}
+                        className="bg-zinc-900/50 border-zinc-700 text-white focus:border-blue-500"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description *</Label>
+                    <Label htmlFor="description" className="text-zinc-300">Description *</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       placeholder="Describe the item in detail (color, brand, condition, etc.)"
+                      className="bg-zinc-900/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500"
                       rows={3}
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="image">Upload Image</Label>
-                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                    <Label htmlFor="image" className="text-zinc-300">Upload Image</Label>
+                    <div className="border-2 border-dashed border-zinc-700 rounded-lg p-6 text-center bg-zinc-900/30">
                       <input id="image" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                       <label htmlFor="image" className="cursor-pointer">
-                        <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-sm text-muted-foreground">
+                        <Upload className="w-8 h-8 text-zinc-400 mx-auto mb-2" />
+                        <p className="text-sm text-zinc-400">
                           {formData.image ? formData.image.name : "Click to upload an image"}
                         </p>
                       </label>
@@ -364,10 +372,10 @@ export default function BrowseFoundItems() {
                   </div>
 
                   <div className="flex gap-3 pt-4">
-                    <Button type="submit" className="flex-1">
+                    <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
                       Report Found Item
                     </Button>
-                    <Button type="button" variant="outline" onClick={() => setShowReportForm(false)}>
+                    <Button type="button" variant="outline" onClick={() => setShowReportForm(false)} className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
                       Cancel
                     </Button>
                   </div>
@@ -379,37 +387,37 @@ export default function BrowseFoundItems() {
 
         <div className="mb-8 space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
             <Input
               placeholder="Search for items..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-zinc-900/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500"
             />
           </div>
 
           <div className="flex items-center justify-between">
-            <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
               <Filter className="w-4 h-4" />
               Filters
             </Button>
-            <div className="text-sm text-muted-foreground">{filteredItems.length} items found</div>
+            <div className="text-sm text-zinc-400">{filteredItems.length} items found</div>
           </div>
 
           {showFilters && (
-            <Card>
+            <Card className="bg-zinc-900/50 backdrop-blur-sm border-zinc-700">
               <CardContent className="pt-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>Category</Label>
+                    <Label className="text-zinc-300">Category</Label>
                     <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-zinc-900/50 border-zinc-700 text-white focus:border-blue-500">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
+                      <SelectContent className="bg-zinc-900 border-zinc-700">
+                        <SelectItem value="all" className="text-white hover:bg-zinc-800 focus:bg-zinc-800">All Categories</SelectItem>
                         {categories.map((category) => (
-                          <SelectItem key={category} value={category}>
+                          <SelectItem key={category} value={category} className="text-white hover:bg-zinc-800 focus:bg-zinc-800">
                             {category}
                           </SelectItem>
                         ))}
@@ -418,15 +426,15 @@ export default function BrowseFoundItems() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Location</Label>
+                    <Label className="text-zinc-300">Location</Label>
                     <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-zinc-900/50 border-zinc-700 text-white focus:border-blue-500">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Locations</SelectItem>
+                      <SelectContent className="bg-zinc-900 border-zinc-700">
+                        <SelectItem value="all" className="text-white hover:bg-zinc-800 focus:bg-zinc-800">All Locations</SelectItem>
                         {locations.map((location) => (
-                          <SelectItem key={location} value={location}>
+                          <SelectItem key={location} value={location} className="text-white hover:bg-zinc-800 focus:bg-zinc-800">
                             {location}
                           </SelectItem>
                         ))}
@@ -435,15 +443,15 @@ export default function BrowseFoundItems() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Status</Label>
+                    <Label className="text-zinc-300">Status</Label>
                     <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-zinc-900/50 border-zinc-700 text-white focus:border-blue-500">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="available">Available</SelectItem>
-                        <SelectItem value="claimed">Claimed</SelectItem>
+                      <SelectContent className="bg-zinc-900 border-zinc-700">
+                        <SelectItem value="all" className="text-white hover:bg-zinc-800 focus:bg-zinc-800">All Status</SelectItem>
+                        <SelectItem value="available" className="text-white hover:bg-zinc-800 focus:bg-zinc-800">Available</SelectItem>
+                        <SelectItem value="claimed" className="text-white hover:bg-zinc-800 focus:bg-zinc-800">Claimed</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -455,30 +463,30 @@ export default function BrowseFoundItems() {
 
         {filteredItems.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8 text-muted-foreground" />
+            <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-8 h-8 text-zinc-400" />
             </div>
-            <h3 className="font-heading font-semibold text-lg mb-2">No items found</h3>
-            <p className="text-muted-foreground">Try adjusting your search or filters</p>
+            <h3 className="font-heading font-semibold text-lg mb-2 text-white">No items found</h3>
+            <p className="text-zinc-400">Try adjusting your search or filters</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems.map((item) => (
-              <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:-translate-y-1">
-                <div className="aspect-square bg-muted relative">
+              <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:-translate-y-1 bg-zinc-900/50 backdrop-blur-sm border-zinc-700">
+                <div className="aspect-square bg-zinc-800 relative">
                   <img
                     src={item.image || "/placeholder.svg?height=300&width=300&query=found item"}
                     alt={item.itemName}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-2 right-2">
-                    <Badge variant={item.status === "available" ? "default" : "secondary"}>
+                    <Badge variant={item.status === "available" ? "default" : "secondary"} className={item.status === "available" ? "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground border-primary/50" : "bg-zinc-700 text-zinc-300"}>
                       {item.status === "available" ? "Available" : "Claimed"}
                     </Badge>
                   </div>
                   {item.reward && (
                     <div className="absolute top-2 left-2">
-                      <Badge variant="outline" className="bg-background/80 backdrop-blur-sm">
+                      <Badge variant="outline" className="bg-gradient-to-b from-primary to-primary/80 text-primary-foreground border-primary/50 backdrop-blur-sm">
                         <Gift className="w-3 h-3 mr-1" />
                         {item.reward}
                       </Badge>
@@ -487,12 +495,12 @@ export default function BrowseFoundItems() {
                 </div>
 
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">{item.itemName}</CardTitle>
-                  <CardDescription className="line-clamp-2">{item.description}</CardDescription>
+                  <CardTitle className="text-lg text-white">{item.itemName}</CardTitle>
+                  <CardDescription className="line-clamp-2 text-zinc-400">{item.description}</CardDescription>
                 </CardHeader>
 
                 <CardContent className="space-y-3">
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-4 text-sm text-zinc-400">
                     <div className="flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
                       {item.location}
@@ -504,10 +512,10 @@ export default function BrowseFoundItems() {
                   </div>
 
                   <div className="space-y-2">
-                    <div className="text-sm">
+                    <div className="text-sm text-zinc-300">
                       <span className="font-medium">Found by:</span> {item.finderName}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-xs text-zinc-400">
                       <Mail className="w-3 h-3" />
                       {item.finderEmail}
                     </div>
@@ -515,13 +523,13 @@ export default function BrowseFoundItems() {
 
                   <div className="space-y-8">
                     <Link href={`/items/${item.id}`}>
-                      <Button variant="outline" className="w-full bg-orange-25 border-orange-100 text-orange-700 hover:bg-orange-50 hover:border-orange-200 hover:text-orange-800 hover:shadow-[0_0_15px_rgba(251,146,60,0.3)] transition-all duration-200 dark:bg-orange-900/20 dark:border-orange-800/50 dark:text-orange-300 dark:hover:bg-orange-900/30 dark:hover:border-orange-700/60">
+                      <Button variant="outline" className="w-full bg-zinc-800/50 border-zinc-600 text-zinc-300 hover:bg-zinc-700 hover:border-zinc-500 hover:text-white transition-all duration-200">
                         View Details
                       </Button>
                     </Link>
                     <Link href={`/chat/${item.id}`}>
                       <Button
-                        className="w-full bg-blue-25 border border-blue-100 text-blue-700 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-800 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all duration-200 dark:bg-blue-900/20 dark:border-blue-800/50 dark:text-blue-300 dark:hover:bg-blue-900/30 dark:hover:border-blue-700/60"
+                        className="w-full bg-gradient-to-b from-primary to-primary/80 border border-primary/50 text-primary-foreground hover:from-primary/90 hover:to-primary/70 hover:border-primary/60 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         variant="outline"
                         disabled={item.status === "claimed"}
                       >
@@ -536,11 +544,11 @@ export default function BrowseFoundItems() {
         )}
 
         <div className="mt-12 text-center">
-          <div className="bg-muted/50 rounded-lg p-6">
-            <h3 className="font-heading font-semibold text-lg mb-2">Can't find your item?</h3>
-            <p className="text-muted-foreground mb-4">Report your lost item so others can help you find it</p>
+          <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-700 rounded-lg p-6">
+            <h3 className="font-heading font-semibold text-lg mb-2 text-white">Can't find your item?</h3>
+            <p className="text-zinc-400 mb-4">Report your lost item so others can help you find it</p>
             <Link href="/report">
-              <Button>Report Lost Item</Button>
+              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0">Report Lost Item</Button>
             </Link>
           </div>
         </div>

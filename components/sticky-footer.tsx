@@ -54,9 +54,12 @@ export function StickyFooter() {
                   className="hover:underline cursor-pointer transition-colors"
                   style={{ color: "#121113" }}
                   onMouseEnter={(e) =>
-                    ((e.target as HTMLElement).style.color = "rgba(18, 17, 19, 0.8)")
+                    ((e.target as HTMLElement).style.color =
+                      "rgba(18, 17, 19, 0.8)")
                   }
-                  onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "#121113")}
+                  onMouseLeave={(e) =>
+                    ((e.target as HTMLElement).style.color = "#121113")
+                  }
                 >
                   Home
                 </li>
@@ -64,9 +67,12 @@ export function StickyFooter() {
                   className="hover:underline cursor-pointer transition-colors"
                   style={{ color: "#121113" }}
                   onMouseEnter={(e) =>
-                    ((e.target as HTMLElement).style.color = "rgba(18, 17, 19, 0.8)")
+                    ((e.target as HTMLElement).style.color =
+                      "rgba(18, 17, 19, 0.8)")
                   }
-                  onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "#121113")}
+                  onMouseLeave={(e) =>
+                    ((e.target as HTMLElement).style.color = "#121113")
+                  }
                 >
                   Docs
                 </li>
@@ -74,9 +80,12 @@ export function StickyFooter() {
                   className="hover:underline cursor-pointer transition-colors"
                   style={{ color: "#121113" }}
                   onMouseEnter={(e) =>
-                    ((e.target as HTMLElement).style.color = "rgba(18, 17, 19, 0.8)")
+                    ((e.target as HTMLElement).style.color =
+                      "rgba(18, 17, 19, 0.8)")
                   }
-                  onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "#121113")}
+                  onMouseLeave={(e) =>
+                    ((e.target as HTMLElement).style.color = "#121113")
+                  }
                 >
                   Components
                 </li>
@@ -86,9 +95,12 @@ export function StickyFooter() {
                   className="hover:underline cursor-pointer transition-colors"
                   style={{ color: "#121113" }}
                   onMouseEnter={(e) =>
-                    ((e.target as HTMLElement).style.color = "rgba(18, 17, 19, 0.8)")
+                    ((e.target as HTMLElement).style.color =
+                      "rgba(18, 17, 19, 0.8)")
                   }
-                  onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "#121113")}
+                  onMouseLeave={(e) =>
+                    ((e.target as HTMLElement).style.color = "#121113")
+                  }
                 >
                   Github
                 </li>
@@ -96,9 +108,12 @@ export function StickyFooter() {
                   className="hover:underline cursor-pointer transition-colors"
                   style={{ color: "#121113" }}
                   onMouseEnter={(e) =>
-                    ((e.target as HTMLElement).style.color = "rgba(18, 17, 19, 0.8)")
+                    ((e.target as HTMLElement).style.color =
+                      "rgba(18, 17, 19, 0.8)")
                   }
-                  onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "#121113")}
+                  onMouseLeave={(e) =>
+                    ((e.target as HTMLElement).style.color = "#121113")
+                  }
                 >
                   Twitter
                 </li>
@@ -106,15 +121,17 @@ export function StickyFooter() {
                   className="hover:underline cursor-pointer transition-colors"
                   style={{ color: "#121113" }}
                   onMouseEnter={(e) =>
-                    ((e.target as HTMLElement).style.color = "rgba(18, 17, 19, 0.8)")
+                    ((e.target as HTMLElement).style.color =
+                      "rgba(18, 17, 19, 0.8)")
                   }
-                  onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "#121113")}
+                  onMouseLeave={(e) =>
+                    ((e.target as HTMLElement).style.color = "#121113")
+                  }
                 >
                   Discord
                 </li>
               </ul>
             </motion.div>
-
           </div>
         </motion.div>
       )}

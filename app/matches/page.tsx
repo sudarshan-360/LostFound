@@ -216,34 +216,38 @@ export default function MatchesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-black to-zinc-900 relative">
+        {/* Decorative elements */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
+        
         {/* Header */}
-        <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
+        <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-zinc-800 relative">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center gap-4">
               <Link
                 href="/"
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
                 <span>Back to Home</span>
               </Link>
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <Search className="w-5 h-5 text-primary-foreground" />
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                  <Search className="w-5 h-5 text-white" />
                 </div>
-                <span className="font-heading font-bold text-lg">Lost & Found VIT</span>
+                <span className="font-heading font-bold text-lg text-white">Lost & Found VIT</span>
               </div>
             </div>
           </div>
         </header>
 
         {/* Loading State */}
-        <main className="container mx-auto px-4 py-8 max-w-4xl">
+        <main className="container mx-auto px-4 py-8 max-w-4xl relative">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <h1 className="text-2xl font-heading font-bold mb-2">Searching for Matches...</h1>
-            <p className="text-muted-foreground">We're looking through all found items to find potential matches</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <h1 className="text-2xl font-heading font-bold mb-2 text-white">Searching for Matches...</h1>
+            <p className="text-zinc-400">We're looking through all found items to find potential matches</p>
           </div>
         </main>
       </div>
@@ -251,33 +255,37 @@ export default function MatchesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-black to-zinc-900 relative">
+      {/* Decorative elements */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
+      
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
+      <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-zinc-800 relative">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span>Back to Home</span>
             </Link>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <Search className="w-5 h-5 text-primary-foreground" />
+              <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 text-primary rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm hover:scale-105 transition-all duration-200">
+                <Search className="w-5 h-5 text-primary" />
               </div>
-              <span className="font-heading font-bold text-lg">Lost & Found VIT</span>
+              <span className="font-heading font-bold text-lg text-white">Lost & Found VIT</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 max-w-4xl relative">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-heading font-bold text-foreground mb-2">Potential Matches Found</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-heading font-bold text-white mb-2">Potential Matches Found</h1>
+          <p className="text-zinc-400">
             {reportedItem &&
               `We found ${matches.length} potential matches for your ${reportedItem.status === "found" ? "found" : "lost"} "${reportedItem.itemName}"`}
           </p>
@@ -286,12 +294,12 @@ export default function MatchesPage() {
         {matches.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2">
             {matches.map(({ item, matchScore, matchReasons }) => (
-              <Card key={item.id} className="shadow-lg hover:shadow-xl transition-shadow">
+              <Card key={item.id} className="shadow-lg hover:shadow-xl transition-shadow bg-zinc-900/50 backdrop-blur-xl border border-zinc-800">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div>
-                      <CardTitle className="text-lg">{item.itemName}</CardTitle>
-                      <CardDescription className="flex items-center gap-1 mt-1">
+                      <CardTitle className="text-lg text-white">{item.itemName}</CardTitle>
+                      <CardDescription className="flex items-center gap-1 mt-1 text-zinc-400">
                         <MapPin className="w-3 h-3" />
                         {item.location}
                       </CardDescription>
@@ -301,7 +309,7 @@ export default function MatchesPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {(item as any).image && (
-                    <div className="relative h-48 bg-muted rounded-lg overflow-hidden">
+                    <div className="relative h-48 bg-zinc-800 rounded-lg overflow-hidden">
                       <Image
                         src={(item as any).image || "/placeholder.svg"}
                         alt={item.itemName}
@@ -313,20 +321,20 @@ export default function MatchesPage() {
 
                   {/* Item Details */}
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                    <p className="text-sm text-zinc-400">{item.description}</p>
 
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-4 text-xs text-zinc-400">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {reportedItem?.status === "found"
                           ? `Lost ${new Date((item as any).date || (item as any).dateLost).toLocaleDateString()}`
                           : `Found ${new Date((item as any).date || (item as any).dateFound).toLocaleDateString()}`}
                       </span>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs border-zinc-700 text-zinc-300">
                         {item.category}
                       </Badge>
                       {(item as any).reward && (
-                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                        <Badge variant="secondary" className="text-xs bg-gradient-to-b from-primary to-primary/80 text-primary-foreground border-primary/50">
                           Reward: {(item as any).reward}
                         </Badge>
                       )}
@@ -335,10 +343,10 @@ export default function MatchesPage() {
 
                   {/* Match Reasons */}
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">Why this might match:</p>
+                    <p className="text-xs font-medium text-zinc-400">Why this might match:</p>
                     <div className="flex flex-wrap gap-1">
                       {matchReasons.map((reason, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
+                        <Badge key={index} variant="secondary" className="text-xs bg-gradient-to-b from-primary to-primary/80 text-primary-foreground border-primary/50">
                           {reason}
                         </Badge>
                       ))}
@@ -346,28 +354,28 @@ export default function MatchesPage() {
                   </div>
 
                   {/* Contact Information */}
-                  <div className="border-t pt-4 space-y-2">
-                    <p className="text-sm font-medium">
+                  <div className="border-t border-zinc-700 pt-4 space-y-2">
+                    <p className="text-sm font-medium text-white">
                       {reportedItem?.status === "found" ? "Contact the reporter:" : "Contact the finder:"}
                     </p>
-                    <div className="space-y-1 text-sm text-muted-foreground">
-                      <p className="font-medium text-foreground">
+                    <div className="space-y-1 text-sm text-zinc-400">
+                      <p className="font-medium text-white">
                         {reportedItem?.status === "found" ? (item as any).contactName || (item as any).reporterName : (item as any).contactName || (item as any).finderName}
                       </p>
                       <div className="flex items-center gap-2">
-                        <Mail className="w-3 h-3" />
+                        <Mail className="w-3 h-3 text-blue-500" />
                         <a
                           href={`mailto:${reportedItem?.status === "found" ? (item as any).contactEmail || (item as any).reporterEmail : (item as any).contactEmail || (item as any).finderEmail}`}
-                          className="hover:text-primary transition-colors"
+                          className="hover:text-blue-400 transition-colors"
                         >
                           {reportedItem?.status === "found" ? (item as any).contactEmail || (item as any).reporterEmail : (item as any).contactEmail || (item as any).finderEmail}
                         </a>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Phone className="w-3 h-3" />
+                        <Phone className="w-3 h-3 text-blue-500" />
                         <a
                           href={`tel:${reportedItem?.status === "found" ? (item as any).contactPhone || (item as any).reporterPhone : (item as any).contactPhone || (item as any).finderPhone}`}
-                          className="hover:text-primary transition-colors"
+                          className="hover:text-blue-400 transition-colors"
                         >
                           {reportedItem?.status === "found" ? (item as any).contactPhone || (item as any).reporterPhone : (item as any).contactPhone || (item as any).finderPhone}
                         </a>
@@ -377,12 +385,12 @@ export default function MatchesPage() {
 
                   {/* Action Buttons */}
                   <div className="space-y-2 pt-2">
-                    <Button onClick={() => handleStartChat(item)} size="sm" className="w-full">
+                    <Button onClick={() => handleStartChat(item)} size="sm" className="w-full bg-blue-500 hover:bg-blue-600 text-white">
                       <MessageCircle className="w-4 h-4 mr-2" />
                       {reportedItem?.status === "found" ? "Contact Reporter" : "Contact Finder"}
                     </Button>
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="flex-1 bg-transparent" asChild>
+                      <Button size="sm" variant="outline" className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white" asChild>
                         <a
                           href={`mailto:${reportedItem?.status === "found" ? (item as any).contactEmail || (item as any).reporterEmail : (item as any).contactEmail || (item as any).finderEmail}`}
                         >
@@ -390,7 +398,7 @@ export default function MatchesPage() {
                           Email
                         </a>
                       </Button>
-                      <Button size="sm" variant="outline" className="flex-1 bg-transparent" asChild>
+                      <Button size="sm" variant="outline" className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white" asChild>
                         <a
                           href={`tel:${reportedItem?.status === "found" ? (item as any).contactPhone || (item as any).reporterPhone : (item as any).contactPhone || (item as any).finderPhone}`}
                         >
@@ -406,25 +414,25 @@ export default function MatchesPage() {
           </div>
         ) : (
           /* No Matches State */
-          <Card className="text-center py-12">
+          <Card className="text-center py-12 bg-zinc-900/50 backdrop-blur-xl border-zinc-800">
             <CardContent>
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="w-8 h-8 text-muted-foreground" />
+              <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-zinc-400" />
               </div>
-              <h3 className="text-xl font-heading font-semibold mb-2">No matches found yet</h3>
-              <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+              <h3 className="text-xl font-heading font-semibold mb-2 text-white">No matches found yet</h3>
+              <p className="text-zinc-400 mb-4 max-w-md mx-auto">
                 {reportedItem?.status === "found"
                   ? "No one has reported losing an item that matches your found item yet. We'll notify you if someone does!"
                   : "Don't worry! We'll keep looking and notify you as soon as someone reports finding an item that matches your description."}
               </p>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto text-sm italic">
+              <p className="text-zinc-400 mb-6 max-w-md mx-auto text-sm italic">
                 If these aren't yours, keep up your spirit! It'll definitely reach you. Wait patiently for someone to find it.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button asChild>
+                <Button className="bg-blue-500 hover:bg-blue-600 text-white" asChild>
                   <Link href="/browse-found">Browse All Found Items</Link>
                 </Button>
-                <Button variant="outline" asChild>
+                <Button variant="outline" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white" asChild>
                   <Link href="/">Back to Home</Link>
                 </Button>
               </div>
@@ -433,7 +441,7 @@ export default function MatchesPage() {
         )}
 
         {/* Help Text */}
-        <div className="mt-8 text-center text-sm text-muted-foreground">
+        <div className="mt-8 text-center text-sm text-zinc-400">
           <p>
             Found your item? Great! Contact the finder directly using the information provided above.
             <br />

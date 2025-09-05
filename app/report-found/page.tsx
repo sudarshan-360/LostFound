@@ -187,46 +187,53 @@ export default function ReportFoundItem() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black relative">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-black to-zinc-900" />
+      
+      {/* Decorative elements */}
+      <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
+      
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
+      <header className="sticky top-0 z-50 bg-zinc-900/50 backdrop-blur-sm border-b border-zinc-800 relative">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-2 text-zinc-400 hover:text-blue-500 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span>Back to Home</span>
             </Link>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-primary-foreground" />
+              <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 text-primary rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm hover:scale-105 transition-all duration-200">
+                <CheckCircle className="w-5 h-5 text-primary" />
               </div>
-              <span className="font-heading font-bold text-lg">Lost & Found VIT</span>
+              <span className="font-heading font-bold text-lg text-white">Lost & Found VIT</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 max-w-2xl">
+      <main className="container mx-auto px-4 py-8 max-w-2xl relative z-10">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-heading font-bold text-foreground mb-2">
+          <h1 className="text-3xl font-heading font-bold text-white mb-2">
             {isEditMode ? "Edit Found Item Report" : "Report Found Item"}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-zinc-400">
             {isEditMode ? "Update the details of your found item report" : "Help reunite someone with their lost item by reporting what you found"}
           </p>
         </div>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-lg bg-zinc-900/50 backdrop-blur-xl border border-zinc-800">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-primary" />
+            <CardTitle className="flex items-center gap-2 text-white">
+              <CheckCircle className="w-5 h-5 text-blue-500" />
               {isEditMode ? "Edit Found Item Details" : "Found Item Details"}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-zinc-400">
               {isEditMode ? "Update the information about the item you found" : "Provide detailed information to help the owner identify their item"}
             </CardDescription>
           </CardHeader>
@@ -234,12 +241,13 @@ export default function ReportFoundItem() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Item Name */}
               <div className="space-y-2">
-                <Label htmlFor="itemName">Item Name *</Label>
+                <Label htmlFor="itemName" className="text-white">Item Name *</Label>
                 <Input
                   id="itemName"
                   placeholder="e.g., iPhone 13, Blue Backpack, Physics Textbook"
                   value={formData.itemName}
                   onChange={(e) => handleInputChange("itemName", e.target.value)}
+                  className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
                   required
                 />
               </div>
@@ -247,7 +255,7 @@ export default function ReportFoundItem() {
               {/* Category and Location */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category *</Label>
+                  <Label htmlFor="category" className="text-white">Category *</Label>
                   <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
@@ -263,7 +271,7 @@ export default function ReportFoundItem() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="location">Found Location *</Label>
+                  <Label htmlFor="location" className="text-white">Found Location *</Label>
                   <Select value={formData.location} onValueChange={(value) => handleInputChange("location", value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select location" />
@@ -281,12 +289,13 @@ export default function ReportFoundItem() {
                 {/* Custom Location Input - shown when "Other" is selected */}
                 {formData.location === "Other" && (
                   <div className="space-y-2">
-                    <Label htmlFor="customLocation">Please specify location *</Label>
+                    <Label htmlFor="customLocation" className="text-white">Please specify location *</Label>
                     <Input
                       id="customLocation"
                       placeholder="Enter specific location"
                       value={formData.customLocation}
                       onChange={(e) => handleInputChange("customLocation", e.target.value)}
+                      className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
                       required
                     />
                   </div>
@@ -295,8 +304,8 @@ export default function ReportFoundItem() {
 
               {/* Date Found */}
               <div className="space-y-2">
-                <Label htmlFor="dateFound" className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
+                <Label htmlFor="dateFound" className="flex items-center gap-2 text-white">
+                  <Calendar className="w-4 h-4 text-blue-500" />
                   Date Found *
                 </Label>
                 <DatePicker
@@ -311,12 +320,13 @@ export default function ReportFoundItem() {
 
               {/* Description */}
               <div className="space-y-2">
-                <Label htmlFor="description">Detailed Description *</Label>
+                <Label htmlFor="description" className="text-white">Detailed Description *</Label>
                 <Textarea
                   id="description"
                   placeholder="Describe the item in detail - color, size, brand, unique features, condition, etc."
                   value={formData.description}
                   onChange={(e) => handleInputChange("description", e.target.value)}
+                  className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
                   rows={4}
                   required
                 />
@@ -324,11 +334,11 @@ export default function ReportFoundItem() {
 
               {/* Image Upload */}
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Camera className="w-4 h-4" />
+                <Label className="flex items-center gap-2 text-white">
+                  <Camera className="w-4 h-4 text-blue-500" />
                   Photos (Optional, max 3)
                 </Label>
-                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                <div className="border-2 border-dashed border-zinc-700 rounded-lg p-6 text-center bg-zinc-800/30">
                   <input
                     type="file"
                     accept="image/*"
@@ -338,8 +348,8 @@ export default function ReportFoundItem() {
                     id="image-upload"
                   />
                   <label htmlFor="image-upload" className="cursor-pointer">
-                    <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Click to upload images or drag and drop</p>
+                    <Upload className="w-8 h-8 text-zinc-400 mx-auto mb-2" />
+                    <p className="text-sm text-zinc-400">Click to upload images or drag and drop</p>
                   </label>
                 </div>
 
@@ -364,26 +374,27 @@ export default function ReportFoundItem() {
               </div>
 
               {/* Contact Information */}
-              <div className="space-y-4 border-t pt-6">
-                <h3 className="font-heading font-semibold flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-primary" />
+              <div className="space-y-4 border-t border-zinc-700 pt-6">
+                <h3 className="font-heading font-semibold flex items-center gap-2 text-white">
+                  <Phone className="w-4 h-4 text-blue-500" />
                   Your Contact Information
                 </h3>
 
                 <div className="space-y-2">
-                  <Label htmlFor="finderName">Your Name *</Label>
+                  <Label htmlFor="finderName" className="text-white">Your Name *</Label>
                   <Input
                     id="finderName"
                     placeholder="Full name"
                     value={formData.finderName}
                     onChange={(e) => handleInputChange("finderName", e.target.value)}
+                    className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="finderEmail" className="flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
+                  <Label htmlFor="finderEmail" className="flex items-center gap-2 text-white">
+                    <Mail className="w-4 h-4 text-blue-500" />
                     VIT Email *
                   </Label>
                   <Input
@@ -392,25 +403,27 @@ export default function ReportFoundItem() {
                     placeholder="your.name@vitstudent.ac.in"
                     value={formData.finderEmail}
                     onChange={(e) => handleInputChange("finderEmail", e.target.value)}
+                    className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="finderPhone">Phone Number *</Label>
+                  <Label htmlFor="finderPhone" className="text-white">Phone Number *</Label>
                   <Input
                     id="finderPhone"
                     type="tel"
                     placeholder="+91 9876543210"
                     value={formData.finderPhone}
                     onChange={(e) => handleInputChange("finderPhone", e.target.value)}
+                    className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
                     required
                   />
                 </div>
               </div>
 
               {/* Submit Button */}
-              <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+              <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white" size="lg" disabled={isSubmitting}>
                 {isSubmitting ? (isEditMode ? "Updating..." : "Submitting...") : (isEditMode ? "Update Report" : "Report Found Item")}
               </Button>
             </form>
@@ -418,7 +431,7 @@ export default function ReportFoundItem() {
         </Card>
 
         {/* Help Text */}
-        <div className="mt-8 text-center text-sm text-muted-foreground">
+        <div className="mt-8 text-center text-sm text-zinc-400">
           <p>Your report will be visible to all VIT students. The owner can contact you directly!</p>
         </div>
       </main>

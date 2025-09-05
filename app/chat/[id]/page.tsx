@@ -204,10 +204,10 @@ export default function ChatWindowPage({ params }: { params: Promise<{ id: strin
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading chat...</p>
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-zinc-400">Loading chat...</p>
         </div>
       </div>
     )
@@ -216,29 +216,34 @@ export default function ChatWindowPage({ params }: { params: Promise<{ id: strin
   return (
     <PageTransition>
       <div className="h-screen bg-black text-white relative overflow-hidden">
-        {/* Blue overlay with low transparency */}
-        <div className="absolute inset-0 bg-blue-900/20 pointer-events-none"></div>
+        {/* Background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-black to-zinc-900" />
+        
+        {/* Decorative elements */}
+        <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-20 w-96 h-96 bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-full blur-3xl" />
+        
         <div className="relative z-10 flex flex-col h-full">
           {/* Header */}
-          <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-sm border-b border-blue-500/30">
+          <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-sm border-b border-zinc-800">
             <div className="container mx-auto px-4 py-4">
               <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link
                 href="/chat"
-                className="flex items-center gap-2 text-blue-300 hover:text-blue-200 transition-colors"
+                className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
                 <span>Back to Chats</span>
               </Link>
 
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
                   {otherUserName.charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <div className="font-heading font-bold text-white">{otherUserName}</div>
-                  {itemInfo && <div className="text-sm text-blue-300">About: {itemInfo.name}</div>}
+                  {itemInfo && <div className="text-sm text-zinc-400">About: {itemInfo.name}</div>}
                   <div className="flex items-center gap-1 text-xs text-green-400">
                     <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                     <span>Online</span>
@@ -249,7 +254,7 @@ export default function ChatWindowPage({ params }: { params: Promise<{ id: strin
 
                 {itemInfo && (
                   <Link href={`/items/${itemInfo.id}`}>
-                    <Button variant="outline" size="sm" className="border-blue-600 text-blue-300 hover:bg-blue-800/50">
+                    <Button variant="outline" size="sm" className="border-zinc-600 text-zinc-300 hover:bg-zinc-800/50 hover:text-white hover:border-blue-500">
                       View Item
                     </Button>
                   </Link>
@@ -263,10 +268,10 @@ export default function ChatWindowPage({ params }: { params: Promise<{ id: strin
             {/* Item Info Card */}
             {itemInfo && (
               <div className="flex-shrink-0 px-4 py-3">
-                <Card className="bg-black/60 border-blue-500/30 backdrop-blur-sm">
+                <Card className="bg-zinc-800/50 border-zinc-700 backdrop-blur-sm">
                   <CardContent className="p-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-slate-700 rounded-lg overflow-hidden flex-shrink-0">
+                      <div className="w-10 h-10 bg-zinc-700/50 rounded-lg overflow-hidden flex-shrink-0">
                         <img
                           src={itemInfo.image || "/placeholder.svg"}
                           alt={itemInfo.name}
@@ -275,13 +280,13 @@ export default function ChatWindowPage({ params }: { params: Promise<{ id: strin
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-white truncate">{itemInfo.name}</h3>
-                        <div className="flex items-center gap-2 text-sm text-blue-300">
+                        <div className="flex items-center gap-2 text-sm text-zinc-400">
                           <span className="truncate">{itemInfo.category}</span>
                           <span>•</span>
                           <span className="truncate">{itemInfo.location}</span>
                         </div>
                       </div>
-                      <Badge variant="outline" className="border-blue-600 text-blue-300 flex-shrink-0">Chat Topic</Badge>
+                      <Badge variant="outline" className="border-zinc-600 text-zinc-300 flex-shrink-0">Chat Topic</Badge>
                     </div>
                   </CardContent>
                 </Card>
@@ -294,11 +299,11 @@ export default function ChatWindowPage({ params }: { params: Promise<{ id: strin
             {messages.length === 0 ? (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-black/60 border border-blue-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <User className="w-8 h-8 text-blue-300" />
+                  <div className="w-16 h-16 bg-zinc-800/50 border border-zinc-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <User className="w-8 h-8 text-zinc-400" />
                   </div>
                   <h3 className="font-heading font-semibold text-lg mb-2 text-white">Start the conversation</h3>
-                  <p className="text-blue-300">Send a message to {otherUserName} about this item</p>
+                  <p className="text-zinc-400">Send a message to {otherUserName} about this item</p>
                 </div>
               </div>
             ) : (
@@ -312,7 +317,7 @@ export default function ChatWindowPage({ params }: { params: Promise<{ id: strin
                     <div key={message.id}>
                       {showDate && (
                         <div className="text-center py-2">
-                          <Badge variant="outline" className="text-xs border-blue-500/50 text-blue-300 bg-black/40 backdrop-blur-sm">
+                          <Badge variant="outline" className="text-xs border-zinc-600 text-zinc-300 bg-zinc-800/40 backdrop-blur-sm">
                             {formatDate(message.timestamp)}
                           </Badge>
                         </div>
@@ -322,8 +327,8 @@ export default function ChatWindowPage({ params }: { params: Promise<{ id: strin
                         {/* Avatar */}
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 ${
                           isCurrentUser 
-                            ? "bg-gradient-to-br from-pink-500 to-pink-600" 
-                            : "bg-gradient-to-br from-blue-500 to-blue-600"
+                            ? "bg-gradient-to-br from-blue-600 to-purple-600" 
+                            : "bg-gradient-to-br from-zinc-600 to-zinc-700"
                         }`}>
                           {isCurrentUser ? "Y" : otherUserName.charAt(0).toUpperCase()}
                         </div>
@@ -333,14 +338,14 @@ export default function ChatWindowPage({ params }: { params: Promise<{ id: strin
                           <div
                             className={`rounded-2xl px-3 py-2 sm:px-4 sm:py-3 word-wrap break-words ${
                               isCurrentUser 
-                                ? "bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-br-md" 
-                                : "bg-black/70 border border-blue-500/30 text-white rounded-bl-md backdrop-blur-sm"
+                                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-br-md" 
+                                : "bg-zinc-800/70 border border-zinc-700 text-white rounded-bl-md backdrop-blur-sm"
                             }`}
                           >
                             <p className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">{message.message}</p>
                           </div>
                           <div
-                            className={`flex items-center gap-1 mt-1 text-xs text-slate-400 ${
+                            className={`flex items-center gap-1 mt-1 text-xs text-zinc-400 ${
                               isCurrentUser ? "justify-end" : "justify-start"
                             }`}
                           >
@@ -358,7 +363,7 @@ export default function ChatWindowPage({ params }: { params: Promise<{ id: strin
             </div>
 
             {/* Message Input */}
-            <div className="flex-shrink-0 border-t border-blue-500/30 bg-black/80 backdrop-blur-sm">
+            <div className="flex-shrink-0 border-t border-zinc-800 bg-black/80 backdrop-blur-sm">
               <div className="px-4 py-3">
                 <div className="flex gap-3 items-end max-w-4xl mx-auto">
                   <div className="flex-1 relative">
@@ -368,7 +373,7 @@ export default function ChatWindowPage({ params }: { params: Promise<{ id: strin
                       onKeyDown={handleKeyPress}
                       placeholder="Type a message..."
                       rows={1}
-                      className="w-full bg-black/60 border border-blue-500/30 text-white placeholder:text-blue-200/60 rounded-2xl px-4 py-3 focus:border-blue-400 focus:ring-1 focus:ring-blue-400/20 resize-none overflow-hidden min-h-[44px] max-h-[120px] transition-colors"
+                      className="w-full bg-zinc-800/50 border border-zinc-700 text-white placeholder:text-zinc-400 rounded-2xl px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 resize-none overflow-hidden min-h-[44px] max-h-[120px] transition-colors"
                       style={{
                         height: 'auto',
                         minHeight: '44px'
@@ -383,7 +388,7 @@ export default function ChatWindowPage({ params }: { params: Promise<{ id: strin
                   <Button 
                      onClick={sendMessage} 
                      disabled={!newMessage.trim()}
-                     className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white rounded-full w-11 h-11 p-0 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex-shrink-0"
+                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full w-11 h-11 p-0 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex-shrink-0"
                    >
                     <Send className="w-4 h-4" />
                   </Button>

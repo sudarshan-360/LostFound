@@ -42,7 +42,7 @@ export default function SignupPage() {
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <Link
         href="/"
-        className="absolute top-6 left-6 z-20 text-zinc-400 hover:text-[#e78a53] transition-colors duration-200 flex items-center space-x-2"
+        className="absolute top-6 left-6 z-20 text-zinc-400 hover:text-blue-500 transition-colors duration-200 flex items-center space-x-2"
       >
         <svg
           className="w-5 h-5"
@@ -64,8 +64,8 @@ export default function SignupPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-black to-zinc-900" />
 
       {/* Decorative elements */}
-      <div className="absolute top-20 right-20 w-72 h-72 bg-[#e78a53]/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#e78a53]/5 rounded-full blur-3xl" />
+      <div className="absolute top-20 right-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 left-20 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -103,7 +103,7 @@ export default function SignupPage() {
                 placeholder="Enter your full name"
                 value={formData.name}
                 onChange={handleChange}
-                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53] focus:ring-[#e78a53]/20"
+                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
                 required
               />
             </div>
@@ -119,7 +119,7 @@ export default function SignupPage() {
                 placeholder="Enter your email"
                 value={formData.email}
                 onChange={handleChange}
-                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53] focus:ring-[#e78a53]/20"
+                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
                 required
               />
             </div>
@@ -135,7 +135,7 @@ export default function SignupPage() {
                 placeholder="Create a password"
                 value={formData.password}
                 onChange={handleChange}
-                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53] focus:ring-[#e78a53]/20"
+                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
                 required
               />
             </div>
@@ -151,7 +151,7 @@ export default function SignupPage() {
                 placeholder="Confirm your password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53] focus:ring-[#e78a53]/20"
+                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
                 required
               />
             </div>
@@ -160,21 +160,21 @@ export default function SignupPage() {
               <input
                 type="checkbox"
                 id="terms"
-                className="mt-1 rounded border-zinc-700 bg-zinc-800 text-[#e78a53] focus:ring-[#e78a53]/20"
+                className="mt-1 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500/20"
                 required
               />
               <label htmlFor="terms" className="text-sm text-zinc-300">
                 I agree to the{" "}
                 <Link
                   href="#"
-                  className="text-[#e78a53] hover:text-[#e78a53]/80"
+                  className="text-blue-500 hover:text-blue-500/80"
                 >
                   Terms of Service
                 </Link>{" "}
                 and{" "}
                 <Link
                   href="#"
-                  className="text-[#e78a53] hover:text-[#e78a53]/80"
+                  className="text-blue-500 hover:text-blue-500/80"
                 >
                   Privacy Policy
                 </Link>
@@ -184,7 +184,7 @@ export default function SignupPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#e78a53] hover:bg-[#e78a53]/90 text-white font-medium py-3 rounded-xl transition-colors"
+              className="w-full bg-blue-500 hover:bg-blue-500/90 text-white font-medium py-3 rounded-xl transition-colors"
             >
               {isLoading ? "Creating account..." : "Create account"}
             </Button>
@@ -195,7 +195,7 @@ export default function SignupPage() {
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="text-[#e78a53] hover:text-[#e78a53]/80 font-medium"
+                className="text-blue-500 hover:text-blue-500/80 font-medium"
               >
                 Sign in
               </Link>
