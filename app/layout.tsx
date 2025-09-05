@@ -5,7 +5,7 @@ import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "v0 App",
+  title: "VIT LOST AND FOUND",
   description: "Created with v0",
   generator: "v0.app",
 };
