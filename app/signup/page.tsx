@@ -80,7 +80,7 @@ export default function SignupPage() {
           </Link>
           <h1 className="text-3xl font-bold text-white mb-2">Create account</h1>
           <p className="text-zinc-400">
-            Join thousands of developers building with v0
+            Join the VIT community and never lose track of your belongings
           </p>
         </div>
 
@@ -224,10 +224,10 @@ export default function SignupPage() {
           <div className="mt-6 grid grid-cols-2 gap-3">
             <Button
               variant="outline"
-              className="bg-zinc-900/50 border-zinc-800 text-zinc-300 hover:bg-white hover:text-black hover:border-white transition-all duration-200 group"
+              className="bg-zinc-900/50 border-zinc-800 text-zinc-300 hover:bg-white hover:border-white hover:shadow-[0_0_20px_rgba(66,133,244,0.5)] transition-all duration-200 group"
             >
               <svg
-                className="w-5 h-5 mr-2 text-zinc-300 group-hover:text-black transition-colors duration-200"
+                className="w-5 h-5 mr-2 text-zinc-300 transition-colors duration-200"
                 viewBox="0 0 24 24"
               >
                 <path
@@ -251,10 +251,10 @@ export default function SignupPage() {
             </Button>
             <Button
               variant="outline"
-              className="bg-zinc-900/50 border-zinc-800 text-zinc-300 hover:bg-white hover:text-black hover:border-white transition-all duration-200 group"
+              className="bg-zinc-900/50 border-zinc-800 text-zinc-300 hover:bg-white hover:border-white hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-200 group"
             >
               <svg
-                className="w-5 h-5 mr-2 text-zinc-300 group-hover:text-black transition-colors duration-200"
+                className="w-5 h-5 mr-2 text-zinc-300 transition-colors duration-200"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
