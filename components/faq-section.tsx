@@ -1,15 +1,17 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Plus, Minus } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState } from "react";
+import { Plus, Minus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function FAQSection() {
-  const [openItems, setOpenItems] = useState<number[]>([])
+  const [openItems, setOpenItems] = useState<number[]>([]);
 
   const toggleItem = (index: number) => {
-    setOpenItems((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]))
-  }
+    setOpenItems((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
+  };
 
   const faqs = [
     {
@@ -37,7 +39,7 @@ export function FAQSection() {
       answer:
         "We recommend meeting at designated safe spots like the library entrance, main academic blocks, or security checkpoints. Always meet during daylight hours and inform someone about your meeting. Safety is our top priority.",
     },
-  ]
+  ];
 
   return (
     <section id="faq" className="relative overflow-hidden pb-120 pt-24">
@@ -66,7 +68,7 @@ export function FAQSection() {
           transition={{ duration: 0.6, delay: 0.2 }}
           viewport={{ once: true }}
         >
-          Got questions? We've got{" "}
+          Got questions? We&apos;ve got{" "}
           <span className="bg-gradient-to-b from-foreground via-rose-200 to-primary bg-clip-text text-transparent">
             answers
           </span>
@@ -88,8 +90,8 @@ export function FAQSection() {
               tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault()
-                  toggleItem(index)
+                  e.preventDefault();
+                  toggleItem(index);
                 }
               }}
               {...(index === faqs.length - 1 && { "data-faq": faq.question })}
@@ -102,9 +104,15 @@ export function FAQSection() {
                   className=""
                 >
                   {openItems.includes(index) ? (
-                    <Minus className="text-primary flex-shrink-0 transition duration-300" size={24} />
+                    <Minus
+                      className="text-primary flex-shrink-0 transition duration-300"
+                      size={24}
+                    />
                   ) : (
-                    <Plus className="text-primary flex-shrink-0 transition duration-300" size={24} />
+                    <Plus
+                      className="text-primary flex-shrink-0 transition duration-300"
+                      size={24}
+                    />
                   )}
                 </motion.div>
               </div>
@@ -130,5 +138,5 @@ export function FAQSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }

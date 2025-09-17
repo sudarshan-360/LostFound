@@ -49,9 +49,17 @@ export default function Hero() {
                 id="main-title"
                 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl"
               >
-                <strong className="hover:drop-shadow-[0_0_10px_rgba(239,68,68,0.8)] hover:text-red-500 transition-all duration-300 cursor-default">Lost</strong> something? <br />
-                <strong className="hover:drop-shadow-[0_0_10px_rgba(34,197,94,0.8)] hover:text-green-500 transition-all duration-300 cursor-default">Found</strong> something? <br />
-                <em className="italic text-primary">We've got you covered</em>
+                <strong className="hover:drop-shadow-[0_0_10px_rgba(239,68,68,0.8)] hover:text-red-500 transition-all duration-300 cursor-default">
+                  Lost
+                </strong>{" "}
+                something? <br />
+                <strong className="hover:drop-shadow-[0_0_10px_rgba(34,197,94,0.8)] hover:text-green-500 transition-all duration-300 cursor-default">
+                  Found
+                </strong>{" "}
+                something? <br />
+                <em className="italic text-primary">
+                  We&apos;ve got you covered
+                </em>
               </h1>
             </motion.div>
 
@@ -131,7 +139,7 @@ export default function Hero() {
 
               {/* Action buttons */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/report-lost">
+                <Link href="/browse-lost">
                   <div className="group cursor-pointer border border-border bg-primary gap-2 h-[60px] flex items-center p-[10px] rounded-full hover:shadow-lg hover:shadow-primary/50 transition-all duration-300">
                     <div className="border border-primary-foreground/20 bg-primary-foreground h-[40px] rounded-full flex items-center justify-center text-primary">
                       <p className="font-medium tracking-tight mr-3 ml-3 flex items-center gap-2 justify-center text-base">

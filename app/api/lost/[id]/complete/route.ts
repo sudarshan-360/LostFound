@@ -1,0 +1,76 @@
+import { NextRequest, NextResponse } from "next/server";
+import connectDB from "@/lib/db";
+import Item from "@/models/Item";
+import { requireAuth, checkOwnership } from "@/lib/auth";
+import mongoose from "mongoose";
+
+// PATCH /api/lost/[id]/complete - Mark lost item as completed (returned to owner)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  return requireAuth(async (request: NextRequest, user) => {
+    try {
+      const { id } = params;
+
+      // Validate ObjectId
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return NextResponse.json({ error: "Invalid item ID" }, { status: 400 });
+      }
+
+      await connectDB();
+
+      // Find item
+      const item = await Item.findOne({
+        _id: id,
+        type: "lost",
+        isDeleted: false,
+      });
+
+      if (!item) {
+        return NextResponse.json(
+          { error: "Lost item not found" },
+          { status: 404 }
+        );
+      }
+
+      // Check ownership (only owner can mark as completed)
+      if (!checkOwnership(item.userId.toString(), user.id)) {
+        return NextResponse.json(
+          { error: "You can only mark your own items as completed" },
+          { status: 403 }
+        );
+      }
+
+      // Check if already completed
+      if (item.status === "Completed") {
+        return NextResponse.json(
+          { error: "Item is already marked as completed" },
+          { status: 400 }
+        );
+      }
+
+      // Update status to completed
+      item.status = "Completed";
+      item.updatedAt = new Date();
+      await item.save();
+
+      // Populate user data for response
+      await item.populate("userId", "name email avatarUrl phone");
+
+      return NextResponse.json({
+        message: "Lost item marked as completed (returned to owner)",
+        item: item.toObject(),
+      });
+    } catch (error) {
+      console.error("PATCH /api/lost/[id]/complete error:", error);
+      return NextResponse.json(
+        { error: "Internal server error" },
+        { status: 500 }
+      );
+    }
+  })(request);
+}
+
+
+
