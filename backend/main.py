@@ -1,15 +1,37 @@
 import faiss
 import numpy as np
+import os
+import requests
 from sentence_transformers import SentenceTransformer
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel
 from typing import Dict, List, Optional
 import uvicorn
 import logging
 import traceback
 from dateutil import parser as date_parser
+import json
+
+# Custom JSON encoder to handle numpy types
+def deep_convert_numpy_types(obj):
+    """Recursively convert all numpy types to Python native types"""
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {key: deep_convert_numpy_types(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [deep_convert_numpy_types(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(deep_convert_numpy_types(item) for item in obj)
+    else:
+        return obj
 
 # === Setup ===
 logging.basicConfig(level=logging.INFO)
@@ -31,20 +53,191 @@ model = None
 
 @app.on_event("startup")
 async def startup_event():
+    """Initialize the model and load found items from database"""
     global model
     try:
-        logger.info("Loading SentenceTransformer model...")
-        model = SentenceTransformer("all-MiniLM-L6-v2")
-        logger.info("Model loaded successfully!")
+        logger.info("Starting automatic model loading and database sync...")
+        
+        # Load the embedding model on startup
+        model_path = './models/all-MiniLM-L6-v2'
+        if os.path.exists(model_path):
+            model = SentenceTransformer(model_path)
+        else:
+            model = SentenceTransformer('all-MiniLM-L6-v2')
+        logger.info("SentenceTransformer model loaded successfully")
+        
+        # Load items from database
+        await load_found_items_from_database()
+        await load_lost_items_from_database()
+        logger.info("Startup complete - model loaded and items synced")
+        
     except Exception as e:
-        logger.error(f"Failed to load model: {e}")
-        raise e
+        logger.error(f"Error during startup: {e}")
+        logger.error(traceback.format_exc())
+        logger.warning("Startup failed, server will continue - model will load on first request")
+
+def ensure_model_loaded():
+    """Lazy load the model when needed"""
+    global model
+    if model is None:
+        try:
+            model_path = './models/all-MiniLM-L6-v2'
+            if os.path.exists(model_path):
+                model = SentenceTransformer(model_path)
+            else:
+                model = SentenceTransformer('all-MiniLM-L6-v2')
+        except Exception as e:
+            raise HTTPException(status_code=503, detail=f"Model loading failed: {str(e)}")
+    return model
 
 # In-memory storage
-found_items = []   # Store found items
-lost_items = []    # Store lost items for reference
-found_index = None # FAISS index for found items
-lost_index = None  # FAISS index for lost items
+found_items = []
+lost_items = []
+found_index = None
+lost_index = None
+
+# === Helper Functions ===
+async def load_found_items_from_database():
+    global found_items
+    try:
+        response = requests.get("http://localhost:3000/api/found?limit=1000")
+        if response.status_code == 200:
+            data = response.json()
+            items = data.get("items", [])
+            found_items.clear()
+            for item in items:
+                found_items.append({
+                    "id": str(item["_id"]),
+                    "item": item["title"],
+                    "description": item["description"],
+                    "location": item["location"]["text"],
+                    "date": item["createdAt"],
+                    "type": "found",
+                    "contact_info": item.get("contactInfo", {})
+                })
+            rebuild_found_index()
+    except Exception as e:
+        logger.error(f"Error loading found items: {e}")
+        logger.error(traceback.format_exc())
+
+async def load_lost_items_from_database():
+    global lost_items
+    try:
+        response = requests.get("http://localhost:3000/api/lost?limit=1000")
+        if response.status_code == 200:
+            data = response.json()
+            items = data.get("items", [])
+            lost_items.clear()
+            for item in items:
+                lost_items.append({
+                    "id": str(item["_id"]),
+                    "item": item["title"],
+                    "description": item["description"],
+                    "location": item["location"]["text"],
+                    "date": item["createdAt"],
+                    "type": "lost",
+                    "contact_info": item.get("contactInfo", {})
+                })
+            rebuild_lost_index()
+    except Exception as e:
+        logger.error(f"Error loading lost items: {e}")
+        logger.error(traceback.format_exc())
+
+def rebuild_found_index():
+    global found_index
+    if not found_items:
+        found_index = None
+        return
+    current_model = ensure_model_loaded()
+    texts = [f"{item['item']} {item['description']} {item['location']}" for item in found_items]
+    embeddings = current_model.encode(texts, convert_to_numpy=True)
+    faiss.normalize_L2(embeddings)
+    found_index = faiss.IndexFlatIP(embeddings.shape[1])
+    found_index.add(embeddings)
+
+def rebuild_lost_index():
+    global lost_index
+    if not lost_items:
+        lost_index = None
+        return
+    current_model = ensure_model_loaded()
+    texts = [f"{item['item']} {item['description']} {item['location']}" for item in lost_items]
+    embeddings = current_model.encode(texts, convert_to_numpy=True)
+    faiss.normalize_L2(embeddings)
+    lost_index = faiss.IndexFlatIP(embeddings.shape[1])
+    lost_index.add(embeddings)
+
+def normalize_scores(scores):
+    if not scores:
+        return []
+    scores_array = np.array(scores, dtype=np.float32)
+    normalized_scores = (scores_array + 1.0) / 2.0
+    enhanced_scores = 1.0 / (1.0 + np.exp(-10 * (normalized_scores - 0.7)))
+    return [float(np.clip(s, 0.0, 1.0)) for s in enhanced_scores]
+
+def parse_date_flexible(date_str: str) -> datetime:
+    try:
+        if 'Z' in date_str:
+            return datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+        elif '+' in date_str or date_str.endswith('00:00'):
+            return datetime.fromisoformat(date_str)
+        else:
+            return date_parser.parse(date_str)
+    except:
+        return datetime.now()
+
+# === Semantic Matching ===
+def semantic_match_found_to_lost(found_item: Dict, top_k: int = 5) -> List[Dict]:
+    """Pure semantic matching: found item → lost items"""
+    if lost_index is None or not lost_items:
+        return []
+    current_model = ensure_model_loaded()
+    query_text = f"{found_item['item']} {found_item['description']} {found_item['location']}"
+    q_emb = current_model.encode([query_text], convert_to_numpy=True)
+    faiss.normalize_L2(q_emb)
+    D, I = lost_index.search(q_emb, k=min(len(lost_items), top_k*2))
+    if len(D[0]) == 0:
+        return []
+    text_scores_norm = normalize_scores([float(d) for d in D[0]])
+    threshold = 0.6
+    results = []
+    for idx, text_score in zip(I[0], text_scores_norm):
+        if idx >= len(lost_items) or text_score < threshold:
+            continue
+        lost_item = lost_items[idx]
+        results.append({
+            "score": float(text_score),
+            "found_item": lost_item,
+            "similarity_details": {"text_score": float(text_score)}
+        })
+    results.sort(key=lambda x: -x["score"])
+    return results[:min(top_k, len(results))]
+
+def semantic_match_lost_to_found(lost_item: Dict, top_k: int = 5) -> List[Dict]:
+    """Pure semantic matching: lost item → found items"""
+    if found_index is None or not found_items:
+        return []
+    current_model = ensure_model_loaded()
+    query_text = f"{lost_item['item']} {lost_item['description']} {lost_item['location']}"
+    q_emb = current_model.encode([query_text], convert_to_numpy=True)
+    faiss.normalize_L2(q_emb)
+    D, I = found_index.search(q_emb, k=min(len(found_items), top_k*2))
+    if len(D[0]) == 0:
+        return []
+    text_scores_norm = normalize_scores([float(d) for d in D[0]])
+    threshold = 0.6
+    results = []
+    for idx, text_score in zip(I[0], text_scores_norm):
+        if idx >= len(found_items) or text_score < threshold:
+            continue
+        found_item = found_items[idx]
+        results.append({
+            "score": float(text_score),
+            "found_item": found_item,
+            "similarity_details": {"text_score": float(text_score)}
+        })
+    results.sort(key=lambda x: -x["score"])
+    return results[:min(top_k, len(results))]
 
 # === Data Models ===
 class Item(BaseModel):
@@ -52,8 +245,8 @@ class Item(BaseModel):
     item: str
     description: str
     location: str
-    date: str   # ISO string
-    type: str = "found"  # "found" or "lost"
+    date: str
+    type: str = "found"
     contact_info: Optional[Dict] = None
 
 class LostQuery(BaseModel):
@@ -64,273 +257,11 @@ class LostQuery(BaseModel):
     date: str
     contact_info: Optional[Dict] = None
 
-class MatchResult(BaseModel):
-    score: float
-    found_item: Item
-    similarity_details: Dict
-
-class MatchResponse(BaseModel):
-    lost_item: LostQuery
-    matches: List[MatchResult]
-    total_found_items: int
-
-# === Helper Functions ===
-def normalize_scores(scores):
-    """Normalize scores to 0-1 range"""
-    if not scores:
-        return []
-    min_s, max_s = min(scores), max(scores)
-    if max_s - min_s == 0:
-        return [1.0 for _ in scores]
-    return [(s - min_s) / (max_s - min_s) for s in scores]
-
-def rebuild_found_index():
-    """Rebuild FAISS index with current found items"""
-    global found_index
-    
-    try:
-        if not found_items or model is None:
-            found_index = None
-            logger.info("No found items or model not loaded - found index cleared")
-            return
-        
-        # Create text embeddings
-        texts = [f"{item['item']} {item['description']} {item['location']}" for item in found_items]
-        embeddings = model.encode(texts, convert_to_numpy=True)
-        
-        # Ensure embeddings are valid
-        if embeddings.size == 0:
-            found_index = None
-            logger.warning("Empty embeddings generated")
-            return
-            
-        faiss.normalize_L2(embeddings)
-        
-        # Create and populate index
-        found_index = faiss.IndexFlatIP(embeddings.shape[1])
-        found_index.add(embeddings)
-        
-        logger.info(f"FAISS found index rebuilt with {len(found_items)} found items")
-    except Exception as e:
-        logger.error(f"Error rebuilding found index: {e}")
-        logger.error(traceback.format_exc())
-        found_index = None
-
-def rebuild_lost_index():
-    """Rebuild FAISS index with current lost items"""
-    global lost_index
-    
-    try:
-        if not lost_items or model is None:
-            lost_index = None
-            logger.info("No lost items or model not loaded - lost index cleared")
-            return
-        
-        # Create text embeddings
-        texts = [f"{item['item']} {item['description']} {item['location']}" for item in lost_items]
-        embeddings = model.encode(texts, convert_to_numpy=True)
-        
-        # Ensure embeddings are valid
-        if embeddings.size == 0:
-            lost_index = None
-            logger.warning("Empty embeddings generated")
-            return
-            
-        faiss.normalize_L2(embeddings)
-        
-        # Create and populate index
-        lost_index = faiss.IndexFlatIP(embeddings.shape[1])
-        lost_index.add(embeddings)
-        
-        logger.info(f"FAISS lost index rebuilt with {len(lost_items)} lost items")
-    except Exception as e:
-        logger.error(f"Error rebuilding lost index: {e}")
-        logger.error(traceback.format_exc())
-        lost_index = None
-
-def parse_date_flexible(date_str: str) -> datetime:
-    """Parse date string with multiple formats"""
-    try:
-        # Try ISO format first
-        if 'Z' in date_str:
-            return datetime.fromisoformat(date_str.replace('Z', '+00:00'))
-        elif '+' in date_str or date_str.endswith('00:00'):
-            return datetime.fromisoformat(date_str)
-        else:
-            # Use dateutil parser for flexible parsing
-            return date_parser.parse(date_str)
-    except Exception as e:
-        logger.warning(f"Date parsing failed for '{date_str}': {e}")
-        # Return current time as fallback
-        return datetime.now()
-
-def weighted_match_lost_to_found(lost_item: Dict, top_k: int = 5) -> List[MatchResult]:
-    """Find found items that match a lost item using weighted similarity"""
-    try:
-        if found_index is None or not found_items or model is None:
-            logger.info("No found index, items, or model available for matching")
-            return []
-
-        # Embed lost item
-        query_text = f"{lost_item['item']} {lost_item['description']} {lost_item['location']}"
-        q_emb = model.encode([query_text], convert_to_numpy=True)
-        faiss.normalize_L2(q_emb)
-
-        # FAISS search
-        search_k = min(len(found_items), max(top_k * 2, 1))  # Ensure at least 1
-        D, I = found_index.search(q_emb, k=search_k)
-        
-        if len(D[0]) == 0:
-            logger.info("No FAISS search results returned")
-            return []
-        
-        # Normalize text similarity scores
-        text_scores_norm = normalize_scores(list(D[0]))
-
-        results = []
-        lost_date = parse_date_flexible(lost_item["date"])
-
-        for idx, text_score in zip(I[0], text_scores_norm):
-            if idx >= len(found_items):
-                continue
-                
-            found_item = found_items[idx]
-            
-            # Location similarity (exact match = 1.0, partial = 0.5, different = 0.0)
-            lost_loc = lost_item["location"].lower().strip()
-            found_loc = found_item["location"].lower().strip()
-            
-            if lost_loc == found_loc:
-                loc_score = 1.0
-            elif lost_loc in found_loc or found_loc in lost_loc:
-                loc_score = 0.5
-            else:
-                loc_score = 0.0
-            
-            # Date similarity (closer dates = higher score)
-            try:
-                found_date = parse_date_flexible(found_item["date"])
-                days_diff = abs((lost_date - found_date).days)
-                date_score = max(0, 1 - (days_diff / 30))  # 30 days max influence
-            except Exception as e:
-                logger.warning(f"Date comparison failed: {e}")
-                date_score = 0.5  # Default if date parsing fails
-            
-            # Combined score with weights
-            combined_score = (
-                text_score * 0.6 +      # Text similarity (60%)
-                loc_score * 0.3 +       # Location similarity (30%)
-                date_score * 0.1        # Date similarity (10%)
-            )
-            
-            # Only include items with reasonable similarity
-            if combined_score > 0.1:
-                results.append(MatchResult(
-                    score=combined_score,
-                    found_item=Item(**found_item),
-                    similarity_details={
-                        "text_similarity": text_score,
-                        "location_similarity": loc_score,
-                        "date_similarity": date_score
-                    }
-                ))
-
-        # Sort by combined score and return top results
-        results.sort(key=lambda x: x.score, reverse=True)
-        return results[:top_k]
-    
-    except Exception as e:
-        logger.error(f"Error in weighted_match_lost_to_found: {e}")
-        logger.error(traceback.format_exc())
-        return []
-
-def weighted_match_found_to_lost(found_item: Dict, top_k: int = 5) -> List[MatchResult]:
-    """Find lost items that match a found item using weighted similarity"""
-    try:
-        if lost_index is None or not lost_items or model is None:
-            logger.info("No lost index, items, or model available for matching")
-            return []
-
-        # Embed found item
-        query_text = f"{found_item['item']} {found_item['description']} {found_item['location']}"
-        q_emb = model.encode([query_text], convert_to_numpy=True)
-        faiss.normalize_L2(q_emb)
-
-        # FAISS search
-        search_k = min(len(lost_items), max(top_k * 2, 1))  # Ensure at least 1
-        D, I = lost_index.search(q_emb, k=search_k)
-        
-        if len(D[0]) == 0:
-            logger.info("No FAISS search results returned")
-            return []
-        
-        # Normalize text similarity scores
-        text_scores_norm = normalize_scores(list(D[0]))
-
-        results = []
-        found_date = parse_date_flexible(found_item["date"])
-
-        for idx, text_score in zip(I[0], text_scores_norm):
-            if idx >= len(lost_items):
-                continue
-                
-            lost_item = lost_items[idx]
-            
-            # Location similarity (exact match = 1.0, partial = 0.5, different = 0.0)
-            found_loc = found_item["location"].lower().strip()
-            lost_loc = lost_item["location"].lower().strip()
-            
-            if found_loc == lost_loc:
-                loc_score = 1.0
-            elif found_loc in lost_loc or lost_loc in found_loc:
-                loc_score = 0.5
-            else:
-                loc_score = 0.0
-            
-            # Date similarity (closer dates = higher score)
-            try:
-                lost_date = parse_date_flexible(lost_item["date"])
-                days_diff = abs((found_date - lost_date).days)
-                date_score = max(0, 1 - (days_diff / 30))  # 30 days max influence
-            except Exception as e:
-                logger.warning(f"Date comparison failed: {e}")
-                date_score = 0.5  # Default if date parsing fails
-            
-            # Combined score with weights
-            combined_score = (
-                text_score * 0.6 +      # Text similarity (60%)
-                loc_score * 0.3 +       # Location similarity (30%)
-                date_score * 0.1        # Date similarity (10%)
-            )
-            
-            # Only include items with reasonable similarity
-            if combined_score > 0.1:
-                results.append(MatchResult(
-                    score=combined_score,
-                    found_item=Item(**lost_item),  # Note: using found_item field for lost items
-                    similarity_details={
-                        "text_similarity": text_score,
-                        "location_similarity": loc_score,
-                        "date_similarity": date_score
-                    }
-                ))
-
-        # Sort by combined score and return top results
-        results.sort(key=lambda x: x.score, reverse=True)
-        return results[:top_k]
-    
-    except Exception as e:
-        logger.error(f"Error in weighted_match_found_to_lost: {e}")
-        logger.error(traceback.format_exc())
-        return []
-
 # === API Routes ===
 @app.get("/")
 async def root():
-    """Health check endpoint"""
     return {
         "status": "healthy",
-        "service": "Lost & Found FAISS Service", 
         "model_loaded": model is not None,
         "found_items_count": len(found_items),
         "lost_items_count": len(lost_items),
@@ -338,127 +269,58 @@ async def root():
         "lost_index_built": lost_index is not None
     }
 
-@app.post("/add-found", response_model=Dict)
+@app.post("/add-found")
 async def add_found(item: Item):
-    """Add a found item to the FAISS index"""
-    try:
-        if model is None:
-            raise HTTPException(status_code=503, detail="Model not loaded yet")
-            
-        # Convert to dict and add to storage
-        item_dict = item.dict()
-        found_items.append(item_dict)
-        
-        # Rebuild found index
-        rebuild_found_index()
-        
-        logger.info(f"Added found item: {item.id}")
-        return {
-            "status": "success",
-            "message": "Found item added successfully",
-            "item_id": item.id,
-            "total_found_items": len(found_items)
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error adding found item: {e}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Error adding found item: {str(e)}")
+    found_items.append(item.dict())
+    rebuild_found_index()
+    return {"status": "success", "item_id": item.id, "total_found_items": len(found_items)}
 
-@app.post("/add-lost", response_model=Dict)
+@app.post("/add-lost")
 async def add_lost(item: Item):
-    """Add a lost item to the FAISS index"""
-    try:
-        if model is None:
-            raise HTTPException(status_code=503, detail="Model not loaded yet")
-            
-        # Convert to dict and add to storage
-        item_dict = item.dict()
-        lost_items.append(item_dict)
-        
-        # Rebuild lost index
-        rebuild_lost_index()
-        
-        logger.info(f"Added lost item: {item.id}")
-        return {
-            "status": "success",
-            "message": "Lost item added successfully",
-            "item_id": item.id,
-            "total_lost_items": len(lost_items)
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error adding lost item: {e}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Error adding lost item: {str(e)}")
+    lost_items.append(item.dict())
+    rebuild_lost_index()
+    return {"status": "success", "item_id": item.id, "total_lost_items": len(lost_items)}
 
-@app.post("/match-lost", response_model=MatchResponse)
+@app.post("/match-lost", response_class=Response)
 async def match_lost(query: LostQuery):
-    """Find matches for a lost item"""
-    try:
-        if model is None:
-            raise HTTPException(status_code=503, detail="Model not loaded yet")
-            
-        logger.info(f"Finding matches for lost item: {query.item}")
-        matches = weighted_match_lost_to_found(query.dict(), top_k=5)
-        
-        logger.info(f"Found {len(matches)} matches for lost item")
-        return MatchResponse(
-            lost_item=query,
-            matches=matches,
-            total_found_items=len(found_items)
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error finding matches: {e}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Error finding matches: {str(e)}")
+    matches = semantic_match_lost_to_found(query.dict(), top_k=5)
+    response_data = deep_convert_numpy_types({
+        "lost_item": query.dict(),
+        "matches": matches,
+        "total_found_items": len(found_items)
+    })
+    return Response(content=json.dumps(response_data), media_type="application/json")
 
-@app.post("/match-found", response_model=MatchResponse)
-async def match_found(query: LostQuery):  # Reusing LostQuery for found items
-    """Find matches for a found item"""
-    try:
-        if model is None:
-            raise HTTPException(status_code=503, detail="Model not loaded yet")
-            
-        logger.info(f"Finding matches for found item: {query.item}")
-        matches = weighted_match_found_to_lost(query.dict(), top_k=5)
-        
-        logger.info(f"Found {len(matches)} matches for found item")
-        return MatchResponse(
-            lost_item=query,  # This will contain the found item data
-            matches=matches,
-            total_found_items=len(lost_items)  # This will be the count of lost items
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error finding matches: {e}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Error finding matches: {str(e)}")
+@app.post("/match-found", response_class=Response)
+async def match_found(query: LostQuery):
+    matches = semantic_match_found_to_lost(query.dict(), top_k=5)
+    response_data = deep_convert_numpy_types({
+        "found_item": query.dict(),
+        "matches": matches,
+        "total_lost_items": len(lost_items)
+    })
+    return Response(content=json.dumps(response_data), media_type="application/json")
 
 @app.get("/found-items")
 async def get_found_items():
-    """Get all found items (for debugging)"""
-    return {
-        "found_items": found_items,
-        "count": len(found_items)
-    }
+    return {"found_items": found_items, "count": len(found_items)}
 
 @app.get("/lost-items")
 async def get_lost_items():
-    """Get all lost items (for debugging)"""
+    return {"lost_items": lost_items, "count": len(lost_items)}
+
+@app.post("/sync")
+async def sync_found_items():
+    await load_found_items_from_database()
+    await load_lost_items_from_database()
     return {
-        "lost_items": lost_items,
-        "count": len(lost_items)
+        "status": "success",
+        "total_found_items": len(found_items),
+        "total_lost_items": len(lost_items)
     }
 
 @app.delete("/clear-index")
 async def clear_index():
-    """Clear all items and rebuild indexes (for testing)"""
     global found_items, lost_items, found_index, lost_index
     found_items.clear()
     lost_items.clear()

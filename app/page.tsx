@@ -62,7 +62,7 @@ export default function Home() {
         {/* Desktop Header */}
         <header
           className={`sticky top-4 z-[9999] mx-auto hidden w-full flex-row items-center justify-between self-start rounded-full bg-background/50 md:flex backdrop-blur-sm border border-border/50 shadow-lg transition-all duration-300 ${
-            isScrolled ? "max-w-3xl px-2 py-1" : "max-w-5xl px-4 py-2"
+            isScrolled ? "max-w-3xl px-2 py-2" : "max-w-5xl px-4 py-2"
           }`}
           style={{
             willChange: "transform",
