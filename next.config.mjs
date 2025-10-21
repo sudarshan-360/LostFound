@@ -9,6 +9,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  experimental: {
+    // Disable optimizePackageImports to avoid vendor-chunks resolution issues in dev
+    optimizePackageImports: [],
+  },
 }
 
 export default nextConfig

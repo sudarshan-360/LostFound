@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -16,9 +17,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   MatchResult,
   formatSimilarityScore,
-  getSimilarityColor,
   getSimilarityLabel,
-} from "@/lib/faissClient";
+} from "@/lib/similarityClient";
 import {
   Eye,
   MapPin,
@@ -41,6 +41,7 @@ interface MatchResultsModalProps {
   totalItems: number;
   itemType: "lost" | "found";
   itemName: string;
+  itemCategory?: string;
   onViewDetails?: (itemId: string) => void;
 }
 
@@ -53,9 +54,51 @@ export default function MatchResultsModal({
   totalItems,
   itemType,
   itemName,
+  itemCategory,
   onViewDetails,
 }: MatchResultsModalProps) {
-  const [expandedMatch, setExpandedMatch] = useState<number | null>(null);
+  // Category + lexical relevance helpers
+  const normalize = (s: string) => (s || "").toLowerCase().trim();
+  const words = normalize(itemName)
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 3);
+  const containsAny = (text: string) => {
+    const nt = normalize(text);
+    return words.length === 0 ? true : words.some((w) => nt.includes(w));
+  };
+
+  // Filter and sort
+  const displayedMatches = [...matches]
+    .filter((m) => m.score >= 0.6)
+    .filter((m) => {
+      if (itemCategory && m.found_item.category) {
+        if (normalize(m.found_item.category) !== normalize(itemCategory)) {
+          return false;
+        }
+      }
+      return (
+        containsAny(m.found_item.item) || containsAny(m.found_item.description)
+      );
+    })
+    .sort((a, b) => b.score - a.score);
+
+  const getBarColor = (score: number) =>
+    score >= 0.8 ? "bg-emerald-600" : score >= 0.6 ? "bg-green-500" : "bg-red-500";
+
+  const getBadgeClasses = (score: number) => {
+    if (score >= 0.8) return "bg-emerald-600 text-white";
+    if (score >= 0.6) return "bg-green-500 text-white";
+    if (score >= 0.4) return "bg-green-600 text-white";
+    return "bg-red-600 text-white";
+  };
+
+  const getBorderClass = (score: number) => {
+    if (score >= 0.8) return "border-l-emerald-600";
+    if (score >= 0.6) return "border-l-green-500";
+    if (score >= 0.4) return "border-l-green-600";
+    return "border-l-red-600";
+  };
 
   const handleConfirm = () => {
     onConfirm();
@@ -77,9 +120,9 @@ export default function MatchResultsModal({
 
   const getModalDescription = () => {
     if (itemType === "lost") {
-      return `We found ${matches.length} potential matches for "${itemName}". These are found items that might be yours.`;
+      return `We found ${displayedMatches.length} potential matches for "${itemName}". These are found items that might be yours.`;
     } else {
-      return `We found ${matches.length} potential matches for "${itemName}". These are lost items that might match what you found.`;
+      return `We found ${displayedMatches.length} potential matches for "${itemName}". These are lost items that might match what you found.`;
     }
   };
 
@@ -105,7 +148,7 @@ export default function MatchResultsModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          {matches.length === 0 ? (
+          {displayedMatches.length === 0 ? (
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
@@ -116,197 +159,125 @@ export default function MatchResultsModal({
           ) : (
             <>
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">
-                  {totalItems} total {itemType === "lost" ? "found" : "lost"}{" "}
-                  items in database
+                <Badge variant="outline" className="text-xs dark:text-gray-300">
+                  {totalItems} total {itemType === "lost" ? "found" : "lost"} items in database
                 </Badge>
               </div>
 
               <div className="grid gap-4">
-                {matches.map((match, index) => (
-                  <Card
+                {displayedMatches.map((match) => (
+                  <motion.div
                     key={match.found_item.id}
-                    className="border-l-4 border-l-green-500 hover:shadow-md transition-shadow"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg text-gray-900">
-                            {match.found_item.item}
-                          </CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {match.found_item.description}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <Badge
-                            className={`${getSimilarityColor(
-                              match.score
-                            )} bg-opacity-10 border-current`}
-                          >
-                            {formatSimilarityScore(match.score)} match
-                          </Badge>
-                          <span className="text-xs text-gray-500">
-                            {getSimilarityLabel(match.score)} similarity
-                          </span>
-                        </div>
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="pt-0">
-                      <div className="space-y-3">
-                        {/* Basic Info */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <MapPin className="h-4 w-4 text-blue-500" />
-                            <span>{match.found_item.location}</span>
+                    <Card className={`border-l-4 ${getBorderClass(match.score)} hover:shadow-md transition-shadow`}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg text-gray-900 dark:text-gray-100">
+                              {match.found_item.item}
+                            </CardTitle>
+                            {match.found_item.category && (
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                {match.found_item.category}
+                              </p>
+                            )}
+                            <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
+                              {match.found_item.description}
+                            </p>
                           </div>
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <Calendar className="h-4 w-4 text-blue-500" />
-                            <span>
-                              {itemType === "lost" ? "Found" : "Lost"} on{" "}
-                              {new Date(
-                                match.found_item.date
-                              ).toLocaleDateString()}
+                          <div className="flex flex-col items-end gap-2">
+                            <Badge className={getBadgeClasses(match.score)}>
+                              {formatSimilarityScore(match.score)} match
+                            </Badge>
+                            <span className="text-xs text-gray-500">
+                              {getSimilarityLabel(match.score)} similarity
                             </span>
                           </div>
                         </div>
+                      </CardHeader>
 
-                        {/* Contact Info */}
-                        {match.found_item.contact_info && (
-                          <div className="space-y-2">
-                            {match.found_item.contact_info.email && (
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Mail className="h-4 w-4 text-blue-500" />
-                                <span className="truncate">
-                                  {match.found_item.contact_info.email}
-                                </span>
-                              </div>
-                            )}
-                            {match.found_item.contact_info.phone && (
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Phone className="h-4 w-4 text-blue-500" />
-                                <span>
-                                  {match.found_item.contact_info.phone}
-                                </span>
-                              </div>
-                            )}
+                      <CardContent className="pt-0">
+                        <div className="space-y-3">
+                          {/* Similarity Bar */}
+                          <div className="mt-1">
+                            <div className="h-2 w-full bg-zinc-200 rounded-full overflow-hidden">
+                              <motion.div
+                                className={`h-2 ${getBarColor(match.score)}`}
+                                initial={{ width: 0 }}
+                                animate={{ width: `${Math.round(match.score * 100)}%` }}
+                                transition={{ duration: 0.3 }}
+                              />
+                            </div>
                           </div>
-                        )}
 
-                        {/* Detailed Similarity Breakdown */}
-                        <div className="border-t pt-3">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              setExpandedMatch(
-                                expandedMatch === index ? null : index
-                              )
-                            }
-                            className="text-xs text-gray-500 hover:text-gray-700"
-                          >
-                            {expandedMatch === index ? "Hide" : "Show"}{" "}
-                            similarity details
-                          </Button>
+                          {/* Basic Info */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                              <MapPin className="h-4 w-4 text-blue-500" />
+                              <span>{match.found_item.location}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                              <Calendar className="h-4 w-4 text-blue-500" />
+                              <span>
+                                {itemType === "lost" ? "Found" : "Lost"} on {new Date(match.found_item.date).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
 
-                          {expandedMatch === index && (
-                            <div className="mt-3 p-3 bg-gray-50 rounded-lg space-y-2">
-                              <div className="grid grid-cols-3 gap-4 text-xs">
-                                <div>
-                                  <span className="font-medium text-gray-700">
-                                    Text Similarity:
-                                  </span>
-                                  <div
-                                    className={`${getSimilarityColor(
-                                      match.similarity_details.text_similarity
-                                    )} font-medium`}
-                                  >
-                                    {formatSimilarityScore(
-                                      match.similarity_details.text_similarity
-                                    )}
-                                  </div>
+                          {/* Contact Info */}
+                          {match.found_item.contact_info && (
+                            <div className="space-y-2">
+                              {match.found_item.contact_info.email && (
+                                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                  <Mail className="h-4 w-4 text-blue-500" />
+                                  <span className="truncate">{match.found_item.contact_info.email}</span>
                                 </div>
-                                <div>
-                                  <span className="font-medium text-gray-700">
-                                    Location Match:
-                                  </span>
-                                  <div
-                                    className={`${getSimilarityColor(
-                                      match.similarity_details
-                                        .location_similarity
-                                    )} font-medium`}
-                                  >
-                                    {formatSimilarityScore(
-                                      match.similarity_details
-                                        .location_similarity
-                                    )}
-                                  </div>
+                              )}
+                              {match.found_item.contact_info.phone && (
+                                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                  <Phone className="h-4 w-4 text-blue-500" />
+                                  <span>{match.found_item.contact_info.phone}</span>
                                 </div>
-                                <div>
-                                  <span className="font-medium text-gray-700">
-                                    Date Proximity:
-                                  </span>
-                                  <div
-                                    className={`${getSimilarityColor(
-                                      match.similarity_details.date_similarity
-                                    )} font-medium`}
-                                  >
-                                    {formatSimilarityScore(
-                                      match.similarity_details.date_similarity
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
+                              )}
                             </div>
                           )}
-                        </div>
 
-                        {/* Actions */}
-                        <div className="flex gap-2 pt-2">
-                          <Button
-                            size="sm"
-                            className="flex-1"
-                            onClick={() => onViewDetails?.(match.found_item.id)}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </Button>
-                          <Button variant="outline" size="sm" asChild>
-                            <Link href={`/items/${match.found_item.id}`}>
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Open
-                            </Link>
-                          </Button>
+                          {/* Actions */}
+                          <div className="flex gap-2 pt-2">
+                            <Button size="sm" className="flex-1" onClick={() => onViewDetails?.(match.found_item.id)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </Button>
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={`/items/${match.found_item.id}`}>
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                Open
+                              </Link>
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
               </div>
-
-              <Alert className="mt-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  These matches are based on AI similarity analysis. Please
-                  verify details before contacting the{" "}
-                  {itemType === "lost" ? "finder" : "owner"}.
-                </AlertDescription>
-              </Alert>
             </>
           )}
         </div>
 
-        <DialogFooter className="flex gap-2">
-          <Button variant="outline" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            {getActionButtonText()}
-          </Button>
+        <DialogFooter className="mt-4">
+          <div className="flex w-full items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={handleCancel}>
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
+            <Button onClick={handleConfirm}>{getActionButtonText()}</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

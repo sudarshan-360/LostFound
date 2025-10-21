@@ -60,26 +60,68 @@ A comprehensive web application for managing lost and found items with real-time
    Create a `.env.local` file in the root directory:
 
    ```env
-   # Database
-   MONGODB_URI=mongodb://localhost:27017/lostfound
 
-   # NextAuth.js
-   NEXTAUTH_URL=http://localhost:3000
-   NEXTAUTH_SECRET=your-secret-key
-
-   # Cloudinary
-   CLOUDINARY_CLOUD_NAME=your-cloud-name
-   CLOUDINARY_API_KEY=your-api-key
-   CLOUDINARY_API_SECRET=your-api-secret
    ```
+
+# Database
+
+MONGODB_URI=mongodb://localhost:27017/lostfound
+
+# NextAuth.js
+
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-secret-key
+
+# Admin (comma-separated list of admin emails)
+
+ADMIN_EMAILS=lostfound0744@gmail.com
+
+# Email sender configuration
+
+EMAIL_FROM=LOST&FOUND <your-email@gmail.com>
+
+# Cloudinary
+
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+
+````
 
 4. **Start the development server**
 
    ```bash
    npm run dev
+````
+
+The application will be available at `http://localhost:3000`
+
+### CLIP Matching (Optional Advanced Setup)
+
+This project supports automatic matching between lost and found items using a CLIP microservice and a background worker.
+
+1. Configure environment:
+
+   - Copy `.env.example` to `.env.local` and set values for `MONGODB_URI`, `CLIP_SERVICE_URL`, SMTP settings, and `REDIS_URL`.
+
+2. Start the CLIP microservice (Python):
+
+   ```bash
+   pip3 install -r python/clip_service/requirements.txt
+   npm run python:clip
    ```
 
-   The application will be available at `http://localhost:3000`
+3. Start the BullMQ worker:
+
+   ```bash
+   npm run worker:match
+   ```
+
+4. Create items:
+   - Creating a lost item via `POST /api/lost` or a found item via `POST /api/found` automatically enqueues a matching job.
+   - You can also use the example `POST /api/clip/upsert` route to upsert an item and trigger matching.
+
+Emails are sent to the lost item reporter when similarity exceeds the threshold (`SIMILARITY_THRESHOLD`, default `0.8`). Notifications are deduplicated via a `SimilarityLog` model.
 
 ### Scripts
 
@@ -100,17 +142,27 @@ A comprehensive web application for managing lost and found items with real-time
 
 ### Items
 
-- `GET /api/lost` - List lost items with search/filters
-- `POST /api/lost` - Create new lost item
+- `GET /api/lost` - List lost items with search/filters (supports `lostRoom`)
+- `POST /api/lost` - Create new lost item (optional `isLostRoomItem`; admin-enforced)
 - `GET /api/lost/[id]` - Get specific lost item
-- `PUT /api/lost/[id]` - Update lost item (owner only)
-- `DELETE /api/lost/[id]` - Delete lost item (owner only)
+- `PUT /api/lost/[id]` - Update lost item (owner only; admin-only for Lost Room items)
+- `DELETE /api/lost/[id]` - Delete lost item (owner only; admin-only for Lost Room items)
+- `PATCH /api/lost/[id]/complete` - Mark lost item completed (owner only; admin-only for Lost Room items)
 
-- `GET /api/found` - List found items with search/filters
-- `POST /api/found` - Create new found item
+- `GET /api/found` - List found items with search/filters (supports `lostRoom`)
+- `POST /api/found` - Create new found item (optional `isLostRoomItem`; admin-enforced)
 - `GET /api/found/[id]` - Get specific found item
-- `PUT /api/found/[id]` - Update found item (owner only)
-- `DELETE /api/found/[id]` - Delete found item (owner only)
+- `PUT /api/found/[id]` - Update found item (owner only; admin-only for Lost Room items)
+- `DELETE /api/found/[id]` - Delete found item (owner only; admin-only for Lost Room items)
+- `PATCH /api/found/[id]/complete` - Mark found item completed (owner only; admin-only for Lost Room items)
+
+#### Lost Room Support
+
+- `isLostRoomItem` flag designates items managed by admins in the Lost Room.
+- Only admins can set `isLostRoomItem` to `true` on create or update.
+- Non-admins cannot update, delete, or complete items flagged `isLostRoomItem=true`.
+- List endpoints support `lostRoom` query: `true` for only Lost Room items, `false` for non-Lost Room items.
+- Client APIs in `lib/api.ts` support `lostRoom` filters and `isLostRoomItem` on create; server enforces permissions.
 
 ### File Upload
 
@@ -136,6 +188,7 @@ A comprehensive web application for managing lost and found items with real-time
 - Location and date information
 - Image URLs and status tracking
 - User ownership and timestamps
+- Lost Room flag (`isLostRoomItem`) for admin-managed items
 
 ## Security Features
 

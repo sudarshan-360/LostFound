@@ -674,7 +674,11 @@ export default function MyReports() {
                           variant="outline"
                           size="sm"
                           className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:shadow-zinc-900/30 hover:scale-105 group-hover:border-zinc-600"
-                          onClick={() => handleViewDetails(report)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleViewDetails(report);
+                          }}
                         >
                           <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
                           View Details
@@ -682,13 +686,15 @@ export default function MyReports() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() =>
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             handleDeleteClick(
                               report._id,
                               report.type,
                               report.itemName
-                            )
-                          }
+                            );
+                          }}
                           className="flex-1 border-red-800 text-red-400 hover:bg-red-900/30 hover:text-red-300 transition-all duration-300 hover:shadow-lg hover:shadow-red-900/30 hover:scale-105"
                         >
                           <Trash2 className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
@@ -702,9 +708,11 @@ export default function MyReports() {
                           variant="outline"
                           size="sm"
                           className="w-full bg-green-900/20 border-green-800 text-green-400 hover:bg-green-900/30 hover:text-green-300 transition-all duration-300 hover:shadow-lg hover:shadow-green-900/30 hover:scale-105"
-                          onClick={() =>
-                            handleMarkCompleted(report._id, report.type)
-                          }
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleMarkCompleted(report._id, report.type);
+                          }}
                         >
                           <CheckCircle className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
                           {report.type === "lost"

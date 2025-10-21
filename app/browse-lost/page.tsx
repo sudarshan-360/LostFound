@@ -93,7 +93,7 @@ export default function BrowseLostItems() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("active");
   const [showFilters, setShowFilters] = useState(false);
   const [showReportForm, setShowReportForm] = useState(false);
   const [lostItems, setLostItems] = useState<LostItemDisplay[]>([]);
@@ -353,7 +353,10 @@ export default function BrowseLostItems() {
       const matchesLocation =
         selectedLocation === "all" || locationText === selectedLocation;
       const matchesStatus =
-        selectedStatus === "all" || item.status === selectedStatus;
+        selectedStatus === "all" || 
+        (selectedStatus === "active" && (item.status === "active" || item.status === "Available" || item.status === "Lost")) ||
+        (selectedStatus === "resolved" && (item.status === "resolved" || item.status === "Found")) ||
+        (selectedStatus === "completed" && (item.status === "completed" || item.status === "Completed"));
 
       return (
         matchesSearch && matchesCategory && matchesLocation && matchesStatus
@@ -795,7 +798,7 @@ export default function BrowseLostItems() {
                             value="active"
                             className="text-white hover:bg-zinc-800"
                           >
-                            Still Missing
+                            Lost
                           </SelectItem>
                           <SelectItem
                             value="resolved"
@@ -807,7 +810,7 @@ export default function BrowseLostItems() {
                             value="completed"
                             className="text-white hover:bg-zinc-800"
                           >
-                            ✅ Returned to Owner
+                            Completed
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -935,71 +938,89 @@ export default function BrowseLostItems() {
                             {formatISODate(item.createdAt?.toString() || "")}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 text-zinc-400">
-                          <Mail className="w-4 h-4 text-blue-500" />
-                          <span className="truncate">
-                            {item.ownerEmail || "No email"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-zinc-400">
-                          <Phone className="w-4 h-4 text-blue-500" />
-                          <span>{item.ownerPhone || "No phone"}</span>
-                        </div>
+                        {item.status === "completed" ? (
+                          <>
+                            {/* Placeholder for completed items to maintain height */}
+                            <div className="text-sm text-zinc-500 italic">
+                              Details hidden for completed items
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2 text-zinc-400">
+                              <Mail className="w-4 h-4 text-blue-500" />
+                              <span className="truncate">
+                                {item.ownerEmail || "No email"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-zinc-400">
+                              <Phone className="w-4 h-4 text-blue-500" />
+                              <span>{item.ownerPhone || "No phone"}</span>
+                            </div>
+                          </>
+                        )}
                       </div>
 
                       <div className="space-y-3 pt-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:shadow-zinc-900/30 hover:scale-105 group-hover:border-zinc-600"
-                          onClick={() =>
-                            (window.location.href = `/items/${item._id}`)
-                          }
-                        >
-                          <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
-                          {item.status === "active"
-                            ? "I Found This!"
-                            : "View Details"}
-                        </Button>
-
-                        {item.ownerPhone && item.status === "active" && (
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              className="flex-1 bg-green-600 hover:bg-green-700 text-white border-0 transition-all duration-300 hover:shadow-lg hover:shadow-green-900/30 hover:scale-105"
-                              onClick={() => {
-                                if (!item.ownerPhone) return;
-                                const cleanPhone = item.ownerPhone.replace(
-                                  /[^\d+]/g,
-                                  ""
-                                );
-                                const message = encodeURIComponent(
-                                  `Hi! I think I found your lost item "${item.title}". Can we discuss this?`
-                                );
-                                const whatsappUrl = `https://wa.me/${cleanPhone}?text=${message}`;
-                                window.open(whatsappUrl, "_blank");
-                              }}
-                            >
-                              <WhatsAppIcon className="w-3 h-3 mr-1 group-hover:scale-110 transition-transform duration-300" />
-                              WhatsApp
-                            </Button>
+                        {item.status !== "completed" && (
+                          <>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="flex-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:shadow-zinc-900/30 hover:scale-105"
-                              onClick={() => {
-                                if (!item.ownerPhone) return;
-                                const cleanPhone = item.ownerPhone.replace(
-                                  /[^\d+]/g,
-                                  ""
-                                );
-                                window.open(`tel:${cleanPhone}`, "_self");
-                              }}
+                              className="w-full bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:shadow-zinc-900/30 hover:scale-105 group-hover:border-zinc-600"
+                              onClick={() =>
+                                (window.location.href = `/items/${item._id}`)
+                              }
                             >
-                              <Phone className="w-3 h-3 mr-1 group-hover:scale-110 transition-transform duration-300" />
-                              Call
+                              <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
+                              {item.status === "active"
+                                ? "I Found This!"
+                                : "View Details"}
                             </Button>
-                          </div>
+
+                            {item.ownerPhone && item.status === "active" && (
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  className="flex-1 bg-green-600 hover:bg-green-700 text-white border-0 transition-all duration-300 hover:shadow-lg hover:shadow-green-900/30 hover:scale-105"
+                                  onClick={() => {
+                                    if (!item.ownerPhone) return;
+                                    const cleanPhone = item.ownerPhone.replace(
+                                      /[^\d+]/g,
+                                      ""
+                                    );
+                                    const message = encodeURIComponent(
+                                      `Hi! I think I found your lost item "${item.title}". Can we discuss this?`
+                                    );
+                                    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${message}`;
+                                    window.open(whatsappUrl, "_blank");
+                                  }}
+                            >
+                                  <WhatsAppIcon className="w-3 h-3 mr-1 group-hover:scale-110 transition-transform duration-300" />
+                                  WhatsApp
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:shadow-zinc-900/30 hover:scale-105"
+                                  onClick={() => {
+                                    if (!item.ownerPhone) return;
+                                    const cleanPhone = item.ownerPhone.replace(
+                                      /[^\d+]/g,
+                                      ""
+                                    );
+                                    window.open(`tel:${cleanPhone}`, "_self");
+                                  }}
+                                >
+                                  <Phone className="w-3 h-3 mr-1 group-hover:scale-110 transition-transform duration-300" />
+                                  Call
+                                </Button>
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {item.status === "completed" && (
+                          <div className="h-[70px]"></div> /* Placeholder to maintain card height */
                         )}
                       </div>
 

@@ -34,6 +34,8 @@ export interface Item {
     phone?: string;
   };
   status: "Available" | "Claimed" | "Removed" | "Completed";
+  // Flag for items managed in the Lost Room
+  isLostRoomItem?: boolean;
   user: {
     _id?: string;
     name?: string;
@@ -56,6 +58,8 @@ export interface CreateItemData {
     email?: string;
     phone?: string;
   };
+  // Optional Lost Room flag (server enforces admin-only)
+  isLostRoomItem?: boolean;
 }
 
 // Generic API request function
@@ -111,6 +115,8 @@ export const itemsApi = {
     location?: string;
     page?: number;
     limit?: number;
+    // Filter by Lost Room items only
+    lostRoom?: boolean;
   }): Promise<ApiResponse<PaginatedResponse<Item>>> => {
     const searchParams = new URLSearchParams();
     if (params) {
@@ -160,6 +166,8 @@ export const itemsApi = {
     location?: string;
     page?: number;
     limit?: number;
+    // Filter by Lost Room items only
+    lostRoom?: boolean;
   }): Promise<ApiResponse<PaginatedResponse<Item>>> => {
     const searchParams = new URLSearchParams();
     if (params) {

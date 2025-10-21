@@ -3,9 +3,9 @@ import connectDB from "@/lib/db";
 import Item from "@/models/Item";
 import { requireAuth } from "@/lib/auth";
 import { createItemSchema, itemQuerySchema } from "@/lib/validations";
-import { addFoundItem, FaissItem } from "@/lib/faissClient";
 import { z } from "zod";
 import mongoose from "mongoose";
+import { addMatchJob } from "@/lib/matchQueue";
 
 // GET /api/found - List found items with search and filters
 export async function GET(request: NextRequest) {
@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
       limit = 10,
       sortBy = "createdAt",
       sortOrder = "desc",
+      lostRoom,
     } = validatedQuery;
 
     await connectDB();
@@ -56,6 +57,11 @@ export async function GET(request: NextRequest) {
     // Filter by location
     if (location) {
       query["location.text"] = { $regex: location, $options: "i" };
+    }
+
+    // Filter by Lost Room flag
+    if (typeof lostRoom !== "undefined") {
+      query.isLostRoomItem = lostRoom;
     }
 
     // Calculate pagination
@@ -105,11 +111,22 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
     // Validate input
     const preprocessed = {
       ...body,
-      // Normalize location to required object shape
+      // Only admins can create Lost Room items
+      isLostRoomItem: !!(user.isAdmin && body?.isLostRoomItem === true),
+      // Enforce Lost Room location for admin Lost Room items; otherwise normalize
       location:
-        typeof body?.location === "string"
+        user.isAdmin && body?.isLostRoomItem === true
+          ? { text: "Lost Room" }
+          : typeof body?.location === "string"
           ? { text: body.location }
           : body?.location,
+      // Allow admins to skip description by providing a default
+      description:
+        typeof body?.description === "string" && body.description.trim().length > 0
+          ? body.description
+          : user.isAdmin && body?.isLostRoomItem === true
+          ? "Managed by Lost Room"
+          : body?.description,
       type: "found",
     };
 
@@ -129,41 +146,20 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
     // Populate user data for response
     await item.populate("userId", "name email avatarUrl phone");
 
-    // Add to FAISS index
+    // Enqueue CLIP matching in background
     try {
-      const faissItem: FaissItem = {
-        id: item._id.toString(),
-        item: item.title,
-        description: item.description,
-        location: item.location.text,
-        date: item.createdAt.toISOString(),
-        type: "found",
-        contact_info: item.contactInfo
-          ? {
-              email: item.contactInfo.email,
-              phone: item.contactInfo.phone,
-            }
-          : undefined,
-      };
-
-      const faissResult = await addFoundItem(faissItem);
-
-      if (faissResult.success) {
-        // Mark as synced to FAISS
-        item.faissSynced = true;
-        await item.save();
-      } else {
-        console.warn("Failed to add item to FAISS:", faissResult.error);
-      }
-    } catch (faissError) {
-      console.warn("FAISS integration error:", faissError);
-      // Don't fail the request if FAISS fails
+      await addMatchJob(item._id.toString());
+    } catch (err) {
+      console.warn("Failed to enqueue CLIP matching job:", err);
     }
+
+    // FAISS removed: no indexing step required
 
     return NextResponse.json(
       {
         message: "Found item created successfully",
         item: item.toObject(),
+        matching_job_enqueued: true,
       },
       { status: 201 }
     );

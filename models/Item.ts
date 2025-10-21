@@ -23,8 +23,12 @@ export interface IItem extends Document {
     email?: string;
     phone?: string;
   };
+  isLostRoomItem?: boolean; // Flag for items managed in the campus Lost Room
   isDeleted: boolean;
   faissSynced: boolean; // Track if item has been synced to FAISS
+  embedding?: number[]; // CLIP embedding vector
+  embeddingModel?: string; // e.g., clip-ViT-B-32
+  lastEmbeddedAt?: Date; // timestamp to avoid stale embeddings
   createdAt: Date;
   updatedAt: Date;
 }
@@ -132,6 +136,12 @@ const ItemSchema = new Schema<IItem>(
         match: [/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"],
       },
     },
+    // Flag for items managed in the campus Lost Room
+    isLostRoomItem: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
     isDeleted: {
       type: Boolean,
       default: false,
@@ -139,6 +149,18 @@ const ItemSchema = new Schema<IItem>(
     faissSynced: {
       type: Boolean,
       default: false,
+    },
+    embedding: {
+      type: [Number],
+      default: undefined,
+    },
+    embeddingModel: {
+      type: String,
+      default: undefined,
+    },
+    lastEmbeddedAt: {
+      type: Date,
+      default: undefined,
     },
   },
   {
@@ -151,6 +173,7 @@ ItemSchema.index({ type: 1, status: 1, isDeleted: 1 });
 ItemSchema.index({ userId: 1 });
 ItemSchema.index({ createdAt: -1 });
 ItemSchema.index({ title: "text", description: "text", tags: "text" });
+ItemSchema.index({ type: 1, embeddingModel: 1, lastEmbeddedAt: -1 });
 
 export default mongoose.models.Item ||
   mongoose.model<IItem>("Item", ItemSchema);

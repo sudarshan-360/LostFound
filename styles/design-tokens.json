@@ -1,0 +1,42 @@
+{
+  "colors": {
+    "bgGradient": {
+      "description": "Warm dark gradient background",
+      "value": "radial-gradient(ellipse at top left, rgba(255,140,58,0.12), transparent 45%), radial-gradient(ellipse at bottom right, rgba(87,49,26,0.12), transparent 55%), linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(255,255,255,0.03))"
+    },
+    "amberAccent": "#FF8C3A",
+    "textHeading": "#FFF8F2",
+    "textBody": "#E6E1DC",
+    "glassBorder": "rgba(255,255,255,0.10)",
+    "glassSurface": "rgba(255,255,255,0.05)",
+    "iconRing": "rgba(255,255,255,0.20)"
+  },
+  "typography": {
+    "heading": { "size": {"mobile": 20, "tablet": 22, "desktop": 24}, "weight": 700, "color": "#FFF8F2" },
+    "body": { "size": {"mobile": 14, "tablet": 15, "desktop": 15}, "weight": 400, "color": "#E6E1DC", "minContrast": 4.5 }
+  },
+  "icons": {
+    "hero": { "container": 40, "glyph": 20 },
+    "tile": { "container": 28, "glyph": 16 },
+    "gapToHeading": 12
+  },
+  "spacing": {
+    "heroPadding": 24,
+    "tilePadding": 16,
+    "gridGap": {"x": 24, "y": 20},
+    "tapTargetMin": 44
+  },
+  "radii": { "card": 16, "pill": 9999 },
+  "effects": {
+    "glassBlur": 12,
+    "cta": {
+      "innerGlow": "radial-gradient(90% 120% at 50% 50%, rgba(255,140,58,0.35), transparent 60%)",
+      "shadow": "0 8px 24px rgba(255,140,58,0.28)"
+    }
+  },
+  "breakpoints": {
+    "mobile": 0,
+    "tablet": 768,
+    "desktop": 1024
+  }
+}

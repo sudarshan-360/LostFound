@@ -39,7 +39,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
 import FaissMatches from "@/components/faiss-matches";
 import MatchResultsModal from "@/components/match-results-modal";
-import { MatchResult } from "@/lib/faissClient";
+import { MatchResult } from "@/lib/similarityClient";
 
 // Removed unused FoundItem interface to satisfy lint
 
@@ -228,6 +228,10 @@ export default function ReportLostItem() {
             email: formData.contactEmail,
             phone: formData.contactPhone,
           },
+          category: formData.category,
+          image_urls: Array.isArray(uploadedImages)
+            ? uploadedImages.map((i) => i.url)
+            : [],
         }),
       });
 
@@ -269,10 +273,12 @@ export default function ReportLostItem() {
         title: formData.itemName,
         description: formData.description,
         category: formData.category,
-        location:
-          formData.location === "Other"
-            ? formData.customLocation
-            : formData.location,
+        location: {
+          text:
+            formData.location === "Other"
+              ? formData.customLocation
+              : formData.location,
+        },
         dateLost: formData.dateLost,
         images: uploadedImages,
         contactInfo: {
@@ -306,16 +312,9 @@ export default function ReportLostItem() {
         // Trigger refresh event for My Reports page
         document.dispatchEvent(new CustomEvent("reports-refresh"));
 
-        // Only redirect if not in edit mode and no matches found
-        if (
-          !isEditMode &&
-          (!result.data?.faiss_matches ||
-            result.data.faiss_matches.matches.length === 0)
-        ) {
-          setTimeout(() => {
-            router.push("/browse-lost");
-          }, 2000);
-        }
+        // Always redirect to the Found page after successful submission
+        router.push("/browse-found");
+        return;
       } else {
         setError(handleApiError(result.error || "Failed to submit report"));
       }
@@ -349,8 +348,8 @@ export default function ReportLostItem() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-black to-zinc-900 relative">
       {/* Decorative Elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
+      <div className="absolute top-0 left-0 w-96 h-96 bg-red-500/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-red-500/5 rounded-full blur-3xl" />
 
       {/* Header */}
       <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-zinc-800">
@@ -358,14 +357,14 @@ export default function ReportLostItem() {
           <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="flex items-center gap-2 text-zinc-400 hover:text-blue-500 transition-colors"
+              className="flex items-center gap-2 text-zinc-400 hover:text-red-500 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span>Back to Home</span>
             </Link>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20 text-primary rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm hover:scale-105 transition-all duration-200">
-                <Search className="w-5 h-5 text-primary" />
+              <div className="w-8 h-8 bg-gradient-to-br from-red-500/20 to-red-500/10 border border-red-500/20 text-red-500 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm hover:scale-105 transition-all duration-200">
+                <Search className="w-5 h-5 text-red-500" />
               </div>
               <span className="font-heading font-bold text-lg text-white">
                 Lost & Found VIT
@@ -391,7 +390,7 @@ export default function ReportLostItem() {
         <Card className="shadow-lg bg-zinc-900/50 backdrop-blur-xl border border-zinc-800">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white">
-              <Search className="w-5 h-5 text-blue-500" />
+              <Search className="w-5 h-5 text-red-500" />
               {isEditMode ? "Edit Lost Item Details" : "Lost Item Details"}
             </CardTitle>
             <CardDescription className="text-zinc-400">
@@ -437,6 +436,7 @@ export default function ReportLostItem() {
               totalItems={preCheckTotalItems}
               itemType="lost"
               itemName={formData.itemName}
+              itemCategory={formData.category}
               onViewDetails={(itemId) => router.push(`/items/${itemId}`)}
             />
           </CardHeader>
@@ -450,12 +450,11 @@ export default function ReportLostItem() {
                 <Input
                   id="itemName"
                   placeholder="e.g., iPhone 13, Blue Backpack, Physics Textbook"
+                  className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-red-500 focus:ring-red-500/20"
                   value={formData.itemName}
                   onChange={(e) =>
                     handleInputChange("itemName", e.target.value)
                   }
-                  className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
-                  required
                 />
               </div>
 
@@ -467,13 +466,11 @@ export default function ReportLostItem() {
                 <Textarea
                   id="description"
                   placeholder="Describe your item in detail (color, brand, distinctive features, etc.)"
+                  className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-red-500 focus:ring-red-500/20"
                   value={formData.description}
                   onChange={(e) =>
                     handleInputChange("description", e.target.value)
                   }
-                  className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
-                  rows={4}
-                  required
                 />
               </div>
 
@@ -490,7 +487,7 @@ export default function ReportLostItem() {
                     }
                     required
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-zinc-800/50 border-zinc-700 text-white focus:border-red-500 focus:ring-red-500/20">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -513,7 +510,7 @@ export default function ReportLostItem() {
                       handleInputChange("location", value)
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-zinc-800/50 border-zinc-700 text-white focus:border-red-500 focus:ring-red-500/20">
                       <SelectValue placeholder="Select location" />
                     </SelectTrigger>
                     <SelectContent>
@@ -539,7 +536,7 @@ export default function ReportLostItem() {
                       onChange={(e) =>
                         handleInputChange("customLocation", e.target.value)
                       }
-                      className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
+                      className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-red-500 focus:ring-red-500/20"
                       required
                     />
                   </div>
@@ -561,6 +558,7 @@ export default function ReportLostItem() {
                     );
                   }}
                   placeholder="Select the date when item was lost"
+                  className="bg-zinc-800/50 border-zinc-700 text-white hover:border-red-500 focus:border-red-500"
                 />
               </div>
 
@@ -581,7 +579,7 @@ export default function ReportLostItem() {
                     onChange={(e) =>
                       handleInputChange("contactName", e.target.value)
                     }
-                    className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
+                    className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-red-500 focus:ring-red-500/20"
                     required
                   />
                 </div>
@@ -600,7 +598,7 @@ export default function ReportLostItem() {
                         onChange={(e) =>
                           handleInputChange("contactEmail", e.target.value)
                         }
-                        className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20 pr-10"
+                        className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-red-500 focus:ring-red-500/20 pr-10"
                         required
                       />
                       <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
@@ -620,7 +618,7 @@ export default function ReportLostItem() {
                         onChange={(e) =>
                           handleInputChange("contactPhone", e.target.value)
                         }
-                        className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20 pr-10"
+                        className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-red-500 focus:ring-red-500/20 pr-10"
                         required
                       />
                       <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
@@ -632,7 +630,7 @@ export default function ReportLostItem() {
               {/* Image Upload */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Camera className="w-4 h-4 text-blue-500" />
+                  <Camera className="w-4 h-4 text-red-500" />
                   <Label className="text-white">
                     Photos of the Item (Optional)
                   </Label>
@@ -700,7 +698,7 @@ export default function ReportLostItem() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                className="w-full bg-red-600 hover:bg-red-700 text-white"
                 size="lg"
                 disabled={
                   isSubmitting ||

@@ -68,6 +68,7 @@ export const createItemSchema = z.object({
     .max(5, "Cannot have more than 5 images")
     .default([])
     .optional(),
+  isLostRoomItem: z.boolean().optional().default(false),
 });
 
 export const updateItemSchema = z.object({
@@ -112,6 +113,7 @@ export const updateItemSchema = z.object({
         .optional(),
     })
     .optional(),
+  isLostRoomItem: z.boolean().optional(),
 });
 
 // Query validation schemas
@@ -134,6 +136,10 @@ export const itemQuerySchema = z.object({
     .optional(),
   sortBy: z.enum(["createdAt", "updatedAt", "title"]).optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
+  lostRoom: z
+    .string()
+    .transform((val) => ["1", "true", "yes"].includes(val.toLowerCase()))
+    .optional(),
 });
 
 // File upload validation

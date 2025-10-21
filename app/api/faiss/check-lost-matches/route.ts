@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
-
-// Use server-side env var; fallback to public if set; last resort default
-const PYTHON_API_URL =
-  process.env.PYTHON_API_URL ||
-  process.env.NEXT_PUBLIC_PYTHON_API_URL ||
-  "http://127.0.0.1:8000";
+import { matchLostItem, LostQuery } from "@/lib/similarityClient";
 
 export const POST = requireAuth(async (request: NextRequest) => {
   try {
@@ -22,67 +17,55 @@ export const POST = requireAuth(async (request: NextRequest) => {
       );
     }
 
-    const lostQuery = {
+    const lostQuery: LostQuery = {
       id: `temp_${Date.now()}`,
       item: String(body.item),
       description: String(body.description),
       location: String(body.location),
       date: body.date ? String(body.date) : new Date().toISOString(),
       contact_info: body.contact_info,
+      image_urls: Array.isArray(body.image_urls) ? body.image_urls.map(String) : undefined,
     };
 
-    const controller = new AbortController();
-    // Allow more time for initial model warm-up on FastAPI side
-    const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
+    const result = await matchLostItem(lostQuery);
 
-    const url = `${PYTHON_API_URL}/match-lost`;
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(lostQuery),
-        signal: controller.signal,
-      });
-    } catch (fetchErr) {
-      clearTimeout(timeout);
-      console.error("Failed to reach FastAPI", { url: url, error: fetchErr });
+    if (!result.success) {
       return NextResponse.json(
         {
-          error: "FastAPI unreachable",
-          details:
-            fetchErr instanceof Error ? fetchErr.message : String(fetchErr),
-          hint: `Is the service running at ${url}?`,
+          error: "Matching failed",
+          details: result.error,
         },
         { status: 503 }
       );
     }
-    clearTimeout(timeout);
 
-    let payload: unknown;
-    const text = await response.text();
-    try {
-      payload = text ? JSON.parse(text) : null;
-    } catch {
-      payload = text; // non-JSON error body
-    }
+    // Category-aware + lexical relevance filter on top of 60%+ similarity
+    const normalize = (s: string) => (s || "").toLowerCase().trim();
+    const words = normalize(body.item)
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter((w: string) => w.length >= 3);
+    const containsAny = (text: string) => {
+      const nt = normalize(text);
+      return words.length === 0 ? true : words.some((w) => nt.includes(w));
+    };
 
-    if (!response.ok) {
-      console.error("FastAPI error response", {
-        status: response.status,
-        body: payload,
+    // Filter by 60%+ similarity
+    const data = result.data!;
+    const filteredMatches = (data.matches || [])
+      .filter((m) => m.score >= 0.6)
+      .filter((m) => {
+        if (body.category && m.found_item.category) {
+          if (normalize(m.found_item.category) !== normalize(body.category)) {
+            return false;
+          }
+        }
+        return (
+          containsAny(m.found_item.item) || containsAny(m.found_item.description)
+        );
       });
-      return NextResponse.json(
-        {
-          error: "FastAPI error",
-          status: response.status,
-          details: payload,
-        },
-        { status: response.status === 422 ? 422 : 502 }
-      );
-    }
 
-    return NextResponse.json({ success: true, data: payload });
+    return NextResponse.json({ success: true, data: { ...data, matches: filteredMatches } });
   } catch (error) {
     console.error("/api/faiss/check-lost-matches unexpected error:", error);
     return NextResponse.json(

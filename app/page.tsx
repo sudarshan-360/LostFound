@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Search, FileText } from "lucide-react";
 import Hero from "@/components/home/hero";
 import Features from "@/components/features";
-import { TestimonialsSection } from "@/components/testimonials";
+// import { TestimonialsSection } from "@/components/testimonials";
+import LostRoomSection from "@/components/lost-room-section";
 import AuthButtons from "@/components/auth-buttons";
 
 import { FAQSection } from "@/components/faq-section";
@@ -147,7 +148,7 @@ export default function Home() {
               }`}
               onClick={(e) => {
                 e.preventDefault();
-                const element = document.getElementById("testimonials");
+                const element = document.getElementById("lost-room");
                 if (element) {
                   const headerOffset = 120; // Account for sticky header height + margin
                   const elementPosition =
@@ -161,7 +162,7 @@ export default function Home() {
                 }
               }}
             >
-              <span className="relative z-20">Success Stories</span>
+              <span className="relative z-20">Lost & Found Room</span>
             </a>
           </div>
 
@@ -265,9 +266,9 @@ export default function Home() {
           <HowItWorksSection />
         </div>
 
-        {/* Testimonials Section */}
-        <div id="testimonials">
-          <TestimonialsSection />
+        {/* Lost & Found Room Section */}
+        <div id="lost-room">
+          <LostRoomSection />
         </div>
 
         {/* FAQ Section */}

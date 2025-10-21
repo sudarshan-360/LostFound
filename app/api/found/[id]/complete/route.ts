@@ -34,12 +34,23 @@ export async function PATCH(
         );
       }
 
-      // Check ownership (only owner can mark as completed)
-      if (!checkOwnership(item.userId.toString(), user.id)) {
-        return NextResponse.json(
-          { error: "You can only mark your own items as completed" },
-          { status: 403 }
-        );
+      // Enforce admin-only completion for Lost Room items; otherwise require ownership
+      if (item.isLostRoomItem) {
+        if (!user.isAdmin) {
+          return NextResponse.json(
+            { error: "Only admins can mark Lost Room items as completed" },
+            { status: 403 }
+          );
+        }
+        // Admins can proceed regardless of ownership for Lost Room items
+      } else {
+        // Non-Lost Room items: only owner can mark as completed
+        if (!checkOwnership(item.userId.toString(), user.id)) {
+          return NextResponse.json(
+            { error: "You can only mark your own items as completed" },
+            { status: 403 }
+          );
+        }
       }
 
       // Check if already completed

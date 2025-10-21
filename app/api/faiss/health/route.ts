@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkFaissHealth } from "@/lib/faissClient";
+import { checkFaissHealth } from "@/lib/similarityClient";
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     if (!result.success) {
       return NextResponse.json(
         {
-          error: "FAISS service unavailable",
+          error: "Similarity service unavailable",
           details: result.error,
         },
         { status: 503 }
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       data: result.data,
     });
   } catch (error) {
-    console.error("FAISS health check error:", error);
+    console.error("Health check error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

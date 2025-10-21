@@ -39,10 +39,11 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { itemsApi, uploadApi, handleApiError } from "@/lib/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import MatchResultsModal from "@/components/match-results-modal";
-import { MatchResult } from "@/lib/faissClient";
+import { MatchResult } from "@/lib/similarityClient";
 
 export default function ReportFoundItem() {
   const { data: session, status } = useSession();
+  const isAdmin = Boolean((session as any)?.user?.isAdmin);
   const [formData, setFormData] = useState({
     itemName: "",
     description: "",
@@ -84,11 +85,13 @@ export default function ReportFoundItem() {
     if (session?.user && !isEditMode) {
       setFormData((prev) => ({
         ...prev,
-        finderName: session.user.name || "",
-        finderEmail: session.user.email || "",
+        finderName: session?.user?.name || "",
+        finderEmail: session?.user?.email || "",
+        // For admins, set location to Lost Room by default
+        ...(isAdmin ? { location: "Lost Room", customLocation: "" } : {}),
       }));
     }
-  }, [session, isEditMode]);
+  }, [session, isEditMode, isAdmin]);
 
   // Check if we're in edit mode and load existing data
   useEffect(() => {
@@ -256,15 +259,22 @@ export default function ReportFoundItem() {
         body: JSON.stringify({
           item: formData.itemName,
           description: formData.description,
-          location:
-            formData.location === "Other"
-              ? formData.customLocation
-              : formData.location,
+          location: isAdmin
+            ? "Lost Room"
+            : formData.location === "Other"
+            ? formData.customLocation
+            : formData.location,
           date: formData.dateFound,
-          contact_info: {
-            email: formData.contactEmail,
-            phone: formData.contactPhone,
-          },
+          contact_info: !isAdmin
+            ? {
+                email: formData.finderEmail,
+                phone: formData.finderPhone,
+              }
+            : undefined,
+          category: formData.category,
+          image_urls: Array.isArray(uploadedImages)
+            ? uploadedImages.map((i) => i.url)
+            : [],
         }),
       });
 
@@ -301,21 +311,31 @@ export default function ReportFoundItem() {
         return;
       }
 
+      // Determine admin status for Lost Room flag
+      const isAdmin = Boolean((session as any)?.user?.isAdmin);
+
       // Prepare item data
       const itemData = {
         title: formData.itemName,
         description: formData.description,
         category: formData.category,
-        location:
-          formData.location === "Other"
+        location: {
+          text: isAdmin
+            ? "Lost Room"
+            : formData.location === "Other"
             ? formData.customLocation
             : formData.location,
-        dateFound: formData.dateFound,
-        images: uploadedImages,
-        contactInfo: {
-          email: formData.finderEmail,
-          phone: formData.finderPhone,
         },
+        dateFound: formData.dateFound,
+        images: Array.isArray(uploadedImages) ? uploadedImages : [],
+        contactInfo: !isAdmin
+          ? {
+              email: formData.finderEmail,
+              phone: formData.finderPhone,
+            }
+          : undefined,
+        // Auto-flag admin submissions as Lost Room (server enforces admin-only)
+        ...(isAdmin ? { isLostRoomItem: true } : {}),
       };
 
       let result;
@@ -460,6 +480,7 @@ export default function ReportFoundItem() {
               totalItems={preCheckTotalItems}
               itemType="found"
               itemName={formData.itemName}
+              itemCategory={formData.category}
               onViewDetails={(itemId) => router.push(`/items/${itemId}`)}
             />
           </CardHeader>
@@ -508,31 +529,42 @@ export default function ReportFoundItem() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="location" className="text-white">
-                    Found Location *
-                  </Label>
-                  <Select
-                    value={formData.location}
-                    onValueChange={(value) =>
-                      handleInputChange("location", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select location" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {locations.map((location) => (
-                        <SelectItem key={location} value={location}>
-                          {location}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {!isAdmin ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="location" className="text-white">
+                      Found Location *
+                    </Label>
+                    <Select
+                      value={formData.location}
+                      onValueChange={(value) =>
+                        handleInputChange("location", value)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select location" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {locations.map((location) => (
+                          <SelectItem key={location} value={location}>
+                            {location}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label className="text-white">Found Location</Label>
+                    <Input
+                      value="Lost Room"
+                      disabled
+                      className="bg-zinc-800/50 border-zinc-700 text-white"
+                    />
+                  </div>
+                )}
 
                 {/* Custom Location Input - shown when "Other" is selected */}
-                {formData.location === "Other" && (
+                {!isAdmin && formData.location === "Other" && (
                   <div className="space-y-2">
                     <Label htmlFor="customLocation" className="text-white">
                       Please specify location *
@@ -576,7 +608,7 @@ export default function ReportFoundItem() {
               {/* Description */}
               <div className="space-y-2">
                 <Label htmlFor="description" className="text-white">
-                  Detailed Description *
+                  Detailed Description {isAdmin ? "(Optional for Admin)" : "*"}
                 </Label>
                 <Textarea
                   id="description"
@@ -587,8 +619,14 @@ export default function ReportFoundItem() {
                   }
                   className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
                   rows={4}
-                  required
+                  required={!isAdmin}
                 />
+                {isAdmin && (
+                  <p className="text-sm text-zinc-400">
+                    Admin can skip description; it will default to a Lost Room
+                    note.
+                  </p>
+                )}
               </div>
 
               {/* Image Upload */}
@@ -670,43 +708,54 @@ export default function ReportFoundItem() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="finderEmail"
-                    className="flex items-center gap-2 text-white"
-                  >
-                    <Mail className="w-4 h-4 text-blue-500" />
-                    VIT Email *
-                  </Label>
-                  <Input
-                    id="finderEmail"
-                    type="email"
-                    placeholder="your.name@vitstudent.ac.in"
-                    value={formData.finderEmail}
-                    onChange={(e) =>
-                      handleInputChange("finderEmail", e.target.value)
-                    }
-                    className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
-                    required
-                  />
-                </div>
+                {!isAdmin && (
+                  <>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="finderEmail"
+                        className="flex items-center gap-2 text-white"
+                      >
+                        <Mail className="w-4 h-4 text-blue-500" />
+                        VIT Email *
+                      </Label>
+                      <Input
+                        id="finderEmail"
+                        type="email"
+                        placeholder="your.name@vitstudent.ac.in"
+                        value={formData.finderEmail}
+                        onChange={(e) =>
+                          handleInputChange("finderEmail", e.target.value)
+                        }
+                        className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
+                        required
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="finderPhone" className="text-white">
-                    Phone Number *
-                  </Label>
-                  <Input
-                    id="finderPhone"
-                    type="tel"
-                    placeholder="+91 9876543210"
-                    value={formData.finderPhone}
-                    onChange={(e) =>
-                      handleInputChange("finderPhone", e.target.value)
-                    }
-                    className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
-                    required
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="finderPhone" className="text-white">
+                        Phone Number *
+                      </Label>
+                      <Input
+                        id="finderPhone"
+                        type="tel"
+                        placeholder="+91 9876543210"
+                        value={formData.finderPhone}
+                        onChange={(e) =>
+                          handleInputChange("finderPhone", e.target.value)
+                        }
+                        className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500/20"
+                        required
+                      />
+                    </div>
+                  </>
+                )}
+
+                {isAdmin && (
+                  <p className="text-sm text-zinc-400">
+                    Admin submission detected. Contact email/phone are not
+                    required for Lost Room items.
+                  </p>
+                )}
               </div>
 
               {/* Submit Button */}

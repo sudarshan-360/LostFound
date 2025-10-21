@@ -1,46 +1,53 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useTheme } from "next-themes"
-import ScrambleHover from "./ui/scramble"
-import { FollowerPointerCard } from "./ui/following-pointer"
-import { motion, useInView } from "framer-motion"
-import { useEffect, useRef, useState } from "react"
-import { geist } from "@/lib/fonts"
-import { cn } from "@/lib/utils"
+import { useTheme } from "next-themes";
+import ScrambleHover from "./ui/scramble";
+import { FollowerPointerCard } from "./ui/following-pointer";
+import { motion, useInView } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { geist } from "@/lib/fonts";
+import { cn } from "@/lib/utils";
 
 export default function Features() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, amount: 0.3 })
-  const { theme } = useTheme()
-  const [isHovering, setIsHovering] = useState(false)
-  const [isQuickPostHovering, setIsQuickPostHovering] = useState(false)
-  const [isVitLoginHovering, setIsVitLoginHovering] = useState(false)
-  const [isSmartSearchHovering, setIsSmartSearchHovering] = useState(false)
-  const [isDirectContactHovering, setIsDirectContactHovering] = useState(false)
-  const [inputValue, setInputValue] = useState("")
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.3 });
+  const { theme } = useTheme();
+  const [isHovering, setIsHovering] = useState(false);
+  const [isQuickPostHovering, setIsQuickPostHovering] = useState(false);
+  const [isVitLoginHovering, setIsVitLoginHovering] = useState(false);
+  const [isSmartSearchHovering, setIsSmartSearchHovering] = useState(false);
+  const [isDirectContactHovering, setIsDirectContactHovering] = useState(false);
+  const [inputValue, setInputValue] = useState("");
 
-  const [baseColor, setBaseColor] = useState<[number, number, number]>([0.2, 0.6, 0.9]) // Blue theme
-  const [glowColor, setGlowColor] = useState<[number, number, number]>([0.2, 0.6, 0.9]) // Blue theme
+  const [baseColor, setBaseColor] = useState<[number, number, number]>([
+    0.2, 0.6, 0.9,
+  ]); // Blue theme
+  const [glowColor, setGlowColor] = useState<[number, number, number]>([
+    0.2, 0.6, 0.9,
+  ]); // Blue theme
 
-  const [dark, setDark] = useState<number>(theme === "dark" ? 1 : 0)
+  const [dark, setDark] = useState<number>(theme === "dark" ? 1 : 0);
 
   useEffect(() => {
-    setBaseColor([0.2, 0.6, 0.9]) // Blue
-    setGlowColor([0.2, 0.6, 0.9]) // Blue
-    setDark(theme === "dark" ? 1 : 0)
-  }, [theme])
+    setBaseColor([0.2, 0.6, 0.9]); // Blue
+    setGlowColor([0.2, 0.6, 0.9]); // Blue
+    setDark(theme === "dark" ? 1 : 0);
+  }, [theme]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter") {
-      e.preventDefault()
-      setInputValue("")
+      e.preventDefault();
+      setInputValue("");
     }
-  }
+  };
 
   return (
-    <section id="features" className="text-foreground relative overflow-hidden py-12 sm:py-24 md:py-32">
+    <section
+      id="features"
+      className="text-foreground relative overflow-hidden py-12 sm:py-24 md:py-32"
+    >
       <div className="bg-primary absolute -top-10 left-1/2 h-16 w-44 -translate-x-1/2 rounded-full opacity-40 blur-3xl select-none"></div>
       <div className="via-primary/50 absolute top-0 left-1/2 h-px w-3/5 -translate-x-1/2 bg-gradient-to-r from-transparent to-transparent transition-all ease-in-out"></div>
       <motion.div
@@ -53,7 +60,7 @@ export default function Features() {
         <h2
           className={cn(
             "via-foreground mb-8 bg-gradient-to-b from-zinc-800 to-zinc-700 bg-clip-text text-center text-4xl font-semibold tracking-tighter text-transparent md:text-[54px] md:leading-[60px]",
-            geist.className,
+            geist.className
           )}
         >
           Features
@@ -75,7 +82,9 @@ export default function Features() {
                 onMouseLeave={() => setIsQuickPostHovering(false)}
                 ref={ref}
                 initial={{ opacity: 0, y: 50 }}
-                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+                animate={
+                  isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }
+                }
                 transition={{ duration: 0.5, delay: 0.5 }}
                 whileHover={{
                   scale: 1.02,
@@ -85,10 +94,13 @@ export default function Features() {
                 style={{ transition: "all 0s ease-in-out" }}
               >
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-2xl leading-none font-semibold tracking-tight">Quick Post Creation</h3>
+                  <h3 className="text-2xl leading-none font-semibold tracking-tight">
+                    Quick Post Creation
+                  </h3>
                   <div className="text-md text-muted-foreground flex flex-col gap-2 text-sm">
                     <p className="max-w-[460px]">
-                      Lost or found something? Post it instantly with details & images for the VIT community.
+                      Lost or found something? Post it instantly with details &
+                      images for the VIT community.
                     </p>
                   </div>
                 </div>
@@ -103,17 +115,28 @@ export default function Features() {
                     <motion.div
                       className="absolute inset-0 flex items-center justify-center"
                       initial={{ opacity: 0 }}
-                      animate={isQuickPostHovering ? { opacity: 1 } : { opacity: 0 }}
+                      animate={
+                        isQuickPostHovering ? { opacity: 1 } : { opacity: 0 }
+                      }
                       transition={{ duration: 0.5 }}
                     >
-                      <svg width="100%" height="100%" viewBox="0 0 121 94" className="absolute">
+                      <svg
+                        width="100%"
+                        height="100%"
+                        viewBox="0 0 121 94"
+                        className="absolute"
+                      >
                         <motion.path
                           d="M 60.688 1.59 L 60.688 92.449 M 60.688 92.449 L 119.368 92.449 M 60.688 92.449 L 1.414 92.449"
                           stroke="rgb(59, 130, 246)"
                           fill="transparent"
                           strokeDasharray="2 2"
                           initial={{ pathLength: 0 }}
-                          animate={isQuickPostHovering ? { pathLength: 1 } : { pathLength: 0 }}
+                          animate={
+                            isQuickPostHovering
+                              ? { pathLength: 1 }
+                              : { pathLength: 0 }
+                          }
                           transition={{
                             duration: 2,
                             ease: "easeInOut",
@@ -125,11 +148,17 @@ export default function Features() {
                     <motion.div
                       className="absolute top-1/2 left-1/2 w-16 h-16 bg-blue-500 rounded-full blur-[74px] opacity-65 transform -translate-x-1/2 -translate-y-1/2"
                       initial={{ scale: 1 }}
-                      animate={isQuickPostHovering ? { scale: [1, 1.342, 1, 1.342] } : { scale: 1 }}
+                      animate={
+                        isQuickPostHovering
+                          ? { scale: [1, 1.342, 1, 1.342] }
+                          : { scale: 1 }
+                      }
                       transition={{
                         duration: 3,
                         ease: "easeInOut",
-                        repeat: isQuickPostHovering ? Number.POSITIVE_INFINITY : 0,
+                        repeat: isQuickPostHovering
+                          ? Number.POSITIVE_INFINITY
+                          : 0,
                         repeatType: "loop",
                       }}
                     />
@@ -140,22 +169,44 @@ export default function Features() {
                         <motion.div
                           className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center shadow-lg"
                           initial={{ opacity: 1, scale: 1 }}
-                          animate={isQuickPostHovering ? { scale: [1, 1.1, 1] } : { scale: 1 }}
+                          animate={
+                            isQuickPostHovering
+                              ? { scale: [1, 1.1, 1] }
+                              : { scale: 1 }
+                          }
                           transition={{ duration: 0.6, ease: "easeOut" }}
                         >
-                          <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          <svg
+                            className="w-10 h-10 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 4v16m8-8H4"
+                            />
                           </svg>
                         </motion.div>
 
                         {/* Post Form Elements */}
                         <div className="flex flex-col gap-3 w-64">
-                          {["📝 Item Description", "📍 Location Found", "📷 Upload Photos"].map((item, index) => (
+                          {[
+                            "📝 Item Description",
+                            "📍 Location Found",
+                            "📷 Upload Photos",
+                          ].map((item, index) => (
                             <motion.div
                               key={index}
                               className="bg-white/90 dark:bg-gray-800/90 rounded-lg px-4 py-3 flex items-center gap-3 text-sm font-medium shadow-sm border border-blue-200 dark:border-blue-700"
                               initial={{ opacity: 1, x: 0 }}
-                              animate={isQuickPostHovering ? { x: [index % 2 === 0 ? -10 : 10, 0] } : { x: 0 }}
+                              animate={
+                                isQuickPostHovering
+                                  ? { x: [index % 2 === 0 ? -10 : 10, 0] }
+                                  : { x: 0 }
+                              }
                               transition={{
                                 duration: 0.5,
                                 delay: index * 0.1,
@@ -170,7 +221,9 @@ export default function Features() {
                         <motion.button
                           className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium shadow-lg"
                           whileHover={{ scale: 1.05 }}
-                          animate={isQuickPostHovering ? { y: [0, -5, 0] } : { y: 0 }}
+                          animate={
+                            isQuickPostHovering ? { y: [0, -5, 0] } : { y: 0 }
+                          }
                           transition={{ duration: 0.8, delay: 0.3 }}
                         >
                           Post to VIT Community
@@ -188,7 +241,9 @@ export default function Features() {
                 onMouseLeave={() => setIsVitLoginHovering(false)}
                 ref={ref}
                 initial={{ opacity: 0, y: 50 }}
-                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+                animate={
+                  isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }
+                }
                 transition={{ duration: 0.5, delay: 0.5 }}
                 whileHover={{
                   scale: 1.02,
@@ -198,10 +253,13 @@ export default function Features() {
                 style={{ transition: "all 0s ease-in-out" }}
               >
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-2xl leading-none font-semibold tracking-tight">VIT-Only Login</h3>
+                  <h3 className="text-2xl leading-none font-semibold tracking-tight">
+                    VIT-Only Login
+                  </h3>
                   <div className="text-md text-muted-foreground flex flex-col gap-2 text-sm">
                     <p className="max-w-[460px]">
-                      Secure access with Google Auth — only VIT Gmail accounts allowed for trusted community.
+                      Secure access with Google Auth — only VIT Gmail accounts
+                      allowed for trusted community.
                     </p>
                   </div>
                 </div>
@@ -209,10 +267,19 @@ export default function Features() {
                   <div className="mt-8 flex flex-col items-center gap-6">
                     <motion.div
                       className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center shadow-xl"
-                      animate={isVitLoginHovering ? { rotate: [0, 10, -10, 0] } : { rotate: 0 }}
+                      animate={
+                        isVitLoginHovering
+                          ? { rotate: [0, 10, -10, 0] }
+                          : { rotate: 0 }
+                      }
                       transition={{ duration: 1, ease: "easeInOut" }}
                     >
-                      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="w-12 h-12 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -251,7 +318,9 @@ export default function Features() {
                 onMouseEnter={() => setIsSmartSearchHovering(true)}
                 onMouseLeave={() => setIsSmartSearchHovering(false)}
                 initial={{ opacity: 0, y: 50 }}
-                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+                animate={
+                  isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }
+                }
                 transition={{ duration: 0.5, delay: 1.0 }}
                 whileHover={{
                   scale: 1.02,
@@ -261,10 +330,13 @@ export default function Features() {
                 style={{ transition: "all 0s ease-in-out" }}
               >
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-2xl leading-none font-semibold tracking-tight">Smart Search & Filters</h3>
+                  <h3 className="text-2xl leading-none font-semibold tracking-tight">
+                    Smart Search & Filters
+                  </h3>
                   <div className="text-md text-muted-foreground flex flex-col gap-2 text-sm">
                     <p className="max-w-[460px]">
-                      Find items easily by category, location, or date with intelligent search filters.
+                      Find items easily by category, location, or date with
+                      intelligent search filters.
                     </p>
                   </div>
                 </div>
@@ -283,12 +355,22 @@ export default function Features() {
 
                       <div className="px-4 pb-2">
                         <div className="flex flex-wrap gap-2">
-                          {["📱 Electronics", "👜 Bags", "🔑 Keys", "📚 Books", "👕 Clothing"].map((filter, index) => (
+                          {[
+                            "📱 Electronics",
+                            "👜 Bags",
+                            "🔑 Keys",
+                            "📚 Books",
+                            "👕 Clothing",
+                          ].map((filter, index) => (
                             <motion.span
                               key={filter}
                               className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-xs border border-purple-500/30"
                               initial={{ opacity: 0, scale: 0.8 }}
-                              animate={isSmartSearchHovering ? { opacity: 1, scale: 1 } : { opacity: 0.7, scale: 0.9 }}
+                              animate={
+                                isSmartSearchHovering
+                                  ? { opacity: 1, scale: 1 }
+                                  : { opacity: 0.7, scale: 0.9 }
+                              }
                               transition={{ delay: index * 0.1 }}
                             >
                               {filter}
@@ -366,7 +448,9 @@ export default function Features() {
                 onMouseEnter={() => setIsDirectContactHovering(true)}
                 onMouseLeave={() => setIsDirectContactHovering(false)}
                 initial={{ opacity: 0, y: 50 }}
-                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+                animate={
+                  isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }
+                }
                 transition={{ duration: 0.5, delay: 1.0 }}
                 whileHover={{
                   rotateY: 5,
@@ -382,8 +466,8 @@ export default function Features() {
                   </h3>
                   <div className="text-md text-muted-foreground flex flex-col gap-2 text-sm">
                     <p className="max-w-[460px]">
-                      Seamlessly connect with the person who found or lost an item, ensuring swift and secure
-                      communication.
+                      Seamlessly connect with the person who found or lost an
+                      item, ensuring swift and secure communication.
                     </p>
                   </div>
                 </div>
@@ -395,10 +479,19 @@ export default function Features() {
                         <div className="flex items-center gap-3 pb-3 border-b border-pink-200 dark:border-pink-700">
                           <motion.div
                             className="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center"
-                            animate={isDirectContactHovering ? { rotate: [0, 10, -10, 0] } : { rotate: 0 }}
+                            animate={
+                              isDirectContactHovering
+                                ? { rotate: [0, 10, -10, 0] }
+                                : { rotate: 0 }
+                            }
                             transition={{ duration: 1, ease: "easeInOut" }}
                           >
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg
+                              className="w-6 h-6 text-white"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
                               <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -408,13 +501,26 @@ export default function Features() {
                             </svg>
                           </motion.div>
                           <div>
-                            <p className="font-medium text-sm">Connect Instantly</p>
-                            <p className="text-xs text-gray-500">Multiple contact options</p>
+                            <p className="font-medium text-sm">
+                              Connect Instantly
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Multiple contact options
+                            </p>
                           </div>
                           <motion.div
                             className="ml-auto w-2 h-2 bg-green-500 rounded-full"
-                            animate={isDirectContactHovering ? { scale: [1, 1.5, 1] } : { scale: 1 }}
-                            transition={{ duration: 1, repeat: isDirectContactHovering ? Number.POSITIVE_INFINITY : 0 }}
+                            animate={
+                              isDirectContactHovering
+                                ? { scale: [1, 1.5, 1] }
+                                : { scale: 1 }
+                            }
+                            transition={{
+                              duration: 1,
+                              repeat: isDirectContactHovering
+                                ? Number.POSITIVE_INFINITY
+                                : 0,
+                            }}
                           />
                         </div>
 
@@ -423,11 +529,20 @@ export default function Features() {
                           <motion.div
                             className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm flex items-center gap-3"
                             initial={{ opacity: 0, x: -20 }}
-                            animate={isDirectContactHovering ? { opacity: 1, x: 0 } : { opacity: 0.7, x: -10 }}
+                            animate={
+                              isDirectContactHovering
+                                ? { opacity: 1, x: 0 }
+                                : { opacity: 0.7, x: -10 }
+                            }
                             transition={{ delay: 0.2 }}
                           >
                             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg
+                                className="w-4 h-4 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -437,19 +552,32 @@ export default function Features() {
                               </svg>
                             </div>
                             <div className="flex-1">
-                              <p className="text-xs font-medium">Instant Connect</p>
-                              <p className="text-xs text-gray-500">Seamless WhatsApp communication</p>
+                              <p className="text-xs font-medium">
+                                Instant Connect
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Seamless WhatsApp communication
+                              </p>
                             </div>
                           </motion.div>
 
                           <motion.div
                             className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm flex items-center gap-3"
                             initial={{ opacity: 0, x: 20 }}
-                            animate={isDirectContactHovering ? { opacity: 1, x: 0 } : { opacity: 0.7, x: 10 }}
+                            animate={
+                              isDirectContactHovering
+                                ? { opacity: 1, x: 0 }
+                                : { opacity: 0.7, x: 10 }
+                            }
                             transition={{ delay: 0.4 }}
                           >
                             <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg
+                                className="w-4 h-4 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -459,19 +587,32 @@ export default function Features() {
                               </svg>
                             </div>
                             <div className="flex-1">
-                              <p className="text-xs font-medium">Call Directly</p>
-                              <p className="text-xs text-gray-500">Phone contact</p>
+                              <p className="text-xs font-medium">
+                                Call Directly
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Phone contact
+                              </p>
                             </div>
                           </motion.div>
 
                           <motion.div
                             className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm flex items-center gap-3"
                             initial={{ opacity: 0, x: -20 }}
-                            animate={isDirectContactHovering ? { opacity: 1, x: 0 } : { opacity: 0.7, x: -10 }}
+                            animate={
+                              isDirectContactHovering
+                                ? { opacity: 1, x: 0 }
+                                : { opacity: 0.7, x: -10 }
+                            }
                             transition={{ delay: 0.6 }}
                           >
                             <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg
+                                className="w-4 h-4 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -481,8 +622,12 @@ export default function Features() {
                               </svg>
                             </div>
                             <div className="flex-1">
-                              <p className="text-xs font-medium">Email Contact</p>
-                              <p className="text-xs text-gray-500">VIT email verified</p>
+                              <p className="text-xs font-medium">
+                                Email Contact
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                VIT email verified
+                              </p>
                             </div>
                           </motion.div>
                         </div>
@@ -490,27 +635,45 @@ export default function Features() {
                         {/* Connection Status */}
                         <motion.div
                           className="flex items-center justify-center gap-2 pt-2"
-                          animate={isDirectContactHovering ? { y: [0, -2, 0] } : { y: 0 }}
+                          animate={
+                            isDirectContactHovering
+                              ? { y: [0, -2, 0] }
+                              : { y: 0 }
+                          }
                           transition={{ duration: 0.8, delay: 0.3 }}
                         >
                           <div className="flex items-center gap-1">
                             <motion.div
                               className="w-1 h-1 bg-pink-500 rounded-full"
-                              animate={isDirectContactHovering ? { scale: [1, 1.5, 1] } : { scale: 1 }}
+                              animate={
+                                isDirectContactHovering
+                                  ? { scale: [1, 1.5, 1] }
+                                  : { scale: 1 }
+                              }
                               transition={{ duration: 0.5, delay: 0.1 }}
                             />
                             <motion.div
                               className="w-1 h-1 bg-pink-500 rounded-full"
-                              animate={isDirectContactHovering ? { scale: [1, 1.5, 1] } : { scale: 1 }}
+                              animate={
+                                isDirectContactHovering
+                                  ? { scale: [1, 1.5, 1] }
+                                  : { scale: 1 }
+                              }
                               transition={{ duration: 0.5, delay: 0.2 }}
                             />
                             <motion.div
                               className="w-1 h-1 bg-pink-500 rounded-full"
-                              animate={isDirectContactHovering ? { scale: [1, 1.5, 1] } : { scale: 1 }}
+                              animate={
+                                isDirectContactHovering
+                                  ? { scale: [1, 1.5, 1] }
+                                  : { scale: 1 }
+                              }
                               transition={{ duration: 0.5, delay: 0.3 }}
                             />
                           </div>
-                          <p className="text-xs text-gray-500 font-medium">Secure & Trusted</p>
+                          <p className="text-xs text-gray-500 font-medium">
+                            Secure & Trusted
+                          </p>
                         </motion.div>
                       </div>
                     </div>
@@ -522,5 +685,5 @@ export default function Features() {
         </FollowerPointerCard>
       </motion.div>
     </section>
-  )
+  );
 }

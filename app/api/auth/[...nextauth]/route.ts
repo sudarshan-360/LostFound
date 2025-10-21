@@ -1,7 +1,22 @@
-import NextAuth from "next-auth";
+import NextAuth from "next-auth/next";
 import GoogleProvider from "next-auth/providers/google";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
+
+// Ensure Node.js runtime; NextAuth is not supported on the Edge runtime
+export const runtime = "nodejs";
+// Mark as dynamic to avoid any static optimizing of the auth route
+export const dynamic = "force-dynamic";
+
+const ADMIN_EMAILS = ((process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean)).length > 0
+  ? (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean)
+  : ["lostfound0744@gmail.com"]; // fallback based on current admin
 
 const handler = NextAuth({
   providers: [
@@ -25,7 +40,7 @@ const handler = NextAuth({
         return false;
       }
 
-      // Check if email is from any VIT domain
+      // Check if email is from any VIT domain or is a configured admin
       const email = user.email?.toLowerCase();
       if (!email) {
         console.log("No email provided");
@@ -48,13 +63,17 @@ const handler = NextAuth({
       const isValidVitEmail = validVitDomains.some((domain) =>
         email.endsWith(domain)
       );
+      const isAdminEmail = ADMIN_EMAILS.includes(email);
 
-      if (!isValidVitEmail) {
-        console.log("Email validation failed - not a VIT email:", email);
+      if (!(isValidVitEmail || isAdminEmail)) {
+        console.log(
+          "Email validation failed - not a VIT domain or admin email:",
+          email
+        );
         return false;
       }
 
-      console.log("Sign in successful for VIT student:", email);
+      console.log("Sign in successful:", email);
       return true;
     },
     async jwt({ token, user, account }) {
@@ -72,7 +91,7 @@ const handler = NextAuth({
               name: user.name,
               email: user.email,
               avatarUrl: user.image,
-              isAdmin: false,
+              isAdmin: ADMIN_EMAILS.includes((user.email || "").toLowerCase()),
             });
             await dbUser.save();
             console.log("New user created successfully");
@@ -80,8 +99,15 @@ const handler = NextAuth({
             console.log("Existing user found:", user.email);
           }
 
+          // Ensure admin flag aligns with configured admin emails
+          const emailLower = (dbUser.email || "").toLowerCase();
+          if (ADMIN_EMAILS.includes(emailLower) && !dbUser.isAdmin) {
+            dbUser.isAdmin = true;
+            await dbUser.save();
+          }
+
           token.id = dbUser._id.toString();
-          token.isAdmin = dbUser.isAdmin || false;
+          token.isAdmin = !!dbUser.isAdmin;
           token.image = user.image;
         } catch (error) {
           console.error("JWT callback error:", error);

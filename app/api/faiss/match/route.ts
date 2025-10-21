@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { matchLostItem, LostQuery } from "@/lib/faissClient";
+import { matchLostItem, LostQuery } from "@/lib/similarityClient";
 import { requireAuth } from "@/lib/auth";
 
 export const POST = requireAuth(async (request: NextRequest, user) => {
@@ -24,13 +24,13 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
       contact_info: body.contact_info,
     };
 
-    // Get matches from FAISS
+    // Get matches using local similarity logic
     const result = await matchLostItem(lostQuery);
 
     if (!result.success) {
       return NextResponse.json(
         {
-          error: "FAISS matching failed",
+          error: "Matching failed",
           details: result.error,
         },
         { status: 503 }
@@ -42,7 +42,7 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
       data: result.data,
     });
   } catch (error) {
-    console.error("FAISS match error:", error);
+    console.error("Match error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

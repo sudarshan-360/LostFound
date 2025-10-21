@@ -3,7 +3,8 @@ import connectDB from "@/lib/db";
 import Item from "@/models/Item";
 import { requireAuth } from "@/lib/auth";
 import { createItemSchema, itemQuerySchema } from "@/lib/validations";
-import { matchLostItem, LostQuery } from "@/lib/faissClient";
+import { matchLostItem, LostQuery } from "@/lib/similarityClient";
+import { addMatchJob } from "@/lib/matchQueue";
 import { z } from "zod";
 import mongoose from "mongoose";
 
@@ -24,6 +25,7 @@ export async function GET(request: NextRequest) {
       limit = 10,
       sortBy = "createdAt",
       sortOrder = "desc",
+      lostRoom,
     } = validatedQuery;
 
     await connectDB();
@@ -56,6 +58,11 @@ export async function GET(request: NextRequest) {
     // Filter by location
     if (location) {
       query["location.text"] = { $regex: location, $options: "i" };
+    }
+
+    // Filter by Lost Room flag
+    if (typeof lostRoom !== "undefined") {
+      query.isLostRoomItem = lostRoom;
     }
 
     // Calculate pagination
@@ -109,6 +116,8 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
         typeof body?.location === "string"
           ? { text: body.location }
           : body?.location,
+      // Only admins can create Lost Room items
+      isLostRoomItem: !!(user.isAdmin && body?.isLostRoomItem === true),
       type: "lost",
     };
 
@@ -128,7 +137,14 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
     // Populate user data for response
     await item.populate("userId", "name email avatarUrl phone");
 
-    // Get FAISS matches
+    // Enqueue CLIP matching in background
+    try {
+      await addMatchJob(item._id.toString());
+    } catch (err) {
+      console.warn("Failed to enqueue CLIP matching job:", err);
+    }
+
+    // Get potential matches using local similarity logic
     let faissMatches = null;
     try {
       const lostQuery: LostQuery = {
@@ -150,10 +166,10 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
       if (faissResult.success) {
         faissMatches = faissResult.data;
       } else {
-        console.warn("Failed to get FAISS matches:", faissResult.error);
+        console.warn("Failed to get matches:", faissResult.error);
       }
     } catch (faissError) {
-      console.warn("FAISS matching error:", faissError);
+      console.warn("Matching error:", faissError);
       // Don't fail the request if FAISS fails
     }
 
@@ -162,6 +178,7 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
         message: "Lost item created successfully",
         item: item.toObject(),
         faiss_matches: faissMatches,
+        matching_job_enqueued: true,
       },
       { status: 201 }
     );

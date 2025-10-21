@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Card,
   CardContent,
@@ -35,6 +36,7 @@ import {
   Package,
   Eye,
   Trash2,
+  KeyRound,
 } from "lucide-react";
 import Link from "next/link";
 import PageTransition from "@/components/page-transition";
@@ -80,6 +82,8 @@ interface FoundItemDisplay {
   reward?: string;
   itemName: string;
   dateFound?: string;
+  // Flag to indicate Lost Room items managed by admins
+  isLostRoomItem?: boolean;
 }
 
 // API may return location as string or { text }
@@ -92,6 +96,8 @@ type ApiItem = Omit<
   userId?: { name?: string; email?: string };
   user?: { name?: string; email?: string };
   contactInfo?: { email?: string; phone?: string };
+  // Lost Room flag from API
+  isLostRoomItem?: boolean;
 };
 
 // Mock data for found items (keeping for fallback)
@@ -205,13 +211,15 @@ export default function BrowseFoundItems() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("available");
   const [showFilters, setShowFilters] = useState(false);
   const [showReportForm, setShowReportForm] = useState(false);
   const [foundItems, setFoundItems] = useState<FoundItemDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // Toggle to show only Lost Room items
+  const [lostRoomOnly, setLostRoomOnly] = useState(false);
 
   // Load found items from API
   useEffect(() => {
@@ -220,7 +228,9 @@ export default function BrowseFoundItems() {
         setLoading(true);
         setError(null);
 
-        const response = await itemsApi.getFoundItems();
+        const response = await itemsApi.getFoundItems(
+          lostRoomOnly ? { lostRoom: true } : undefined
+        );
 
         if (response.success && response.data) {
           // Transform API data to display format
@@ -289,6 +299,8 @@ export default function BrowseFoundItems() {
                 reward: "",
                 itemName: item.title || "Found Item",
                 dateFound: item.dateFound || "",
+                // Preserve Lost Room flag for UI badge
+                isLostRoomItem: !!(item as any).isLostRoomItem,
               };
             }
           );
@@ -365,7 +377,7 @@ export default function BrowseFoundItems() {
     };
 
     fetchFoundItems();
-  }, []);
+  }, [lostRoomOnly]);
   const [formData, setFormData] = useState({
     itemName: "",
     category: "",
@@ -545,6 +557,8 @@ export default function BrowseFoundItems() {
           reward: "",
           itemName: apiItem.title || "Found Item",
           dateFound: apiItem.dateFound || "",
+          // Preserve Lost Room flag for UI badge
+          isLostRoomItem: !!(apiItem as any).isLostRoomItem,
         };
 
         setFoundItems([newItem, ...foundItems]);
@@ -584,7 +598,11 @@ export default function BrowseFoundItems() {
       const matchesLocation =
         selectedLocation === "all" || locationText === selectedLocation;
       const matchesStatus =
-        selectedStatus === "all" || item.status === selectedStatus;
+        selectedStatus === "all" ||
+        (selectedStatus === "available" &&
+          (item.status === "Available" || item.status === "active")) ||
+        (selectedStatus === "claimed" && item.status === "Claimed") ||
+        (selectedStatus === "completed" && item.status === "Completed");
 
       return (
         matchesSearch && matchesCategory && matchesLocation && matchesStatus
@@ -923,8 +941,22 @@ export default function BrowseFoundItems() {
                 <Filter className="w-4 h-4" />
                 Filters
               </Button>
-              <div className="text-sm text-zinc-400">
-                {filteredItems.length} items found
+              <div className="flex items-center gap-4">
+                <div className="text-sm text-zinc-400">
+                  {filteredItems.length} items found
+                </div>
+                <div className="flex items-center">
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-600/40 ring-1 ring-blue-500/30 shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 transition">
+                    <KeyRound className="w-4 h-4 text-blue-300" />
+                    <Label className="text-blue-100 font-medium">
+                      Show only Lost Room items
+                    </Label>
+                    <Switch
+                      checked={lostRoomOnly}
+                      onCheckedChange={setLostRoomOnly}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1010,7 +1042,7 @@ export default function BrowseFoundItems() {
                             value="available"
                             className="text-white hover:bg-zinc-800 focus:bg-zinc-800"
                           >
-                            Available
+                            Found
                           </SelectItem>
                           <SelectItem
                             value="claimed"
@@ -1022,7 +1054,7 @@ export default function BrowseFoundItems() {
                             value="completed"
                             className="text-white hover:bg-zinc-800 focus:bg-zinc-800"
                           >
-                            ✅ Claimed by Owner
+                            Completed
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -1065,7 +1097,13 @@ export default function BrowseFoundItems() {
                   href={`/items/${item._id}`}
                   className="block"
                 >
-                  <Card className="bg-zinc-900/50 backdrop-blur-xl border-zinc-800 hover:border-zinc-700 transition-all duration-500 group overflow-hidden rounded-xl shadow-lg shadow-green-900/20 hover:shadow-xl hover:shadow-green-900/30 hover:-translate-y-2 hover:scale-[1.02] transform cursor-pointer">
+                  <Card
+                    className={`bg-zinc-900/50 backdrop-blur-xl border-zinc-800 hover:border-zinc-700 transition-all duration-500 group overflow-hidden rounded-xl shadow-lg shadow-green-900/20 hover:shadow-xl hover:shadow-green-900/30 hover:-translate-y-2 hover:scale-[1.02] transform cursor-pointer ${
+                      item.isLostRoomItem
+                        ? "ring-1 ring-purple-500/40 border-purple-500/60 shadow-purple-900/30 hover:shadow-purple-900/50"
+                        : ""
+                    }`}
+                  >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -1116,6 +1154,15 @@ export default function BrowseFoundItems() {
                         </Badge>
                       </div>
 
+                      {/* Lost Room Badge */}
+                      {item.isLostRoomItem && (
+                        <div className="absolute top-12 left-3 group-hover:scale-110 transition-transform duration-300">
+                          <Badge className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-900/30">
+                            Lost Room
+                          </Badge>
+                        </div>
+                      )}
+
                       {/* Reward Badge */}
                       {item.reward && (
                         <div className="absolute top-3 right-3 group-hover:scale-110 transition-transform duration-300">
@@ -1149,69 +1196,87 @@ export default function BrowseFoundItems() {
                             {formatISODate(item.createdAt?.toString() || "")}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 text-zinc-400">
-                          <Mail className="w-4 h-4 text-blue-500" />
-                          <span className="truncate">
-                            {item.finderEmail || "No email"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-zinc-400">
-                          <Phone className="w-4 h-4 text-blue-500" />
-                          <span>{item.finderPhone || "No phone"}</span>
-                        </div>
+                        {item.status === "completed" ? (
+                          <>
+                            {/* Placeholder for completed items to maintain height */}
+                            <div className="text-sm text-zinc-500 italic">
+                              Details hidden for completed items
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2 text-zinc-400">
+                              <Mail className="w-4 h-4 text-blue-500" />
+                              <span className="truncate">
+                                {item.finderEmail || "No email"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-zinc-400">
+                              <Phone className="w-4 h-4 text-blue-500" />
+                              <span>{item.finderPhone || "No phone"}</span>
+                            </div>
+                          </>
+                        )}
                       </div>
 
                       <div className="space-y-3 pt-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:shadow-zinc-900/30 hover:scale-105 group-hover:border-zinc-600"
-                          onClick={() =>
-                            (window.location.href = `/items/${item._id}`)
-                          }
-                        >
-                          <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
-                          View Details
-                        </Button>
-
-                        {item.finderPhone && item.status !== "resolved" && (
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              className="flex-1 bg-green-600 hover:bg-green-700 text-white border-0 transition-all duration-300 hover:shadow-lg hover:shadow-green-900/30 hover:scale-105"
-                              onClick={() => {
-                                if (!item.finderPhone) return;
-                                const cleanPhone = item.finderPhone.replace(
-                                  /[^\d+]/g,
-                                  ""
-                                );
-                                const message = encodeURIComponent(
-                                  `Hi! I saw your lost & found posting for "${item.title}". Is it still available?`
-                                );
-                                const whatsappUrl = `https://wa.me/${cleanPhone}?text=${message}`;
-                                window.open(whatsappUrl, "_blank");
-                              }}
-                            >
-                              <WhatsAppIcon className="w-3 h-3 mr-1 group-hover:scale-110 transition-transform duration-300" />
-                              WhatsApp
-                            </Button>
+                        {item.status !== "completed" && (
+                          <>
                             <Button
                               variant="outline"
                               size="sm"
-                              className="flex-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:shadow-zinc-900/30 hover:scale-105"
-                              onClick={() => {
-                                if (!item.finderPhone) return;
-                                const cleanPhone = item.finderPhone.replace(
-                                  /[^\d+]/g,
-                                  ""
-                                );
-                                window.open(`tel:${cleanPhone}`, "_self");
-                              }}
+                              className="w-full bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:shadow-zinc-900/30 hover:scale-105 group-hover:border-zinc-600"
+                              onClick={() =>
+                                (window.location.href = `/items/${item._id}`)
+                              }
                             >
-                              <Phone className="w-3 h-3 mr-1 group-hover:scale-110 transition-transform duration-300" />
-                              Call
+                              <Eye className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
+                              View Details
                             </Button>
-                          </div>
+
+                            {item.finderPhone && item.status !== "resolved" && (
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  className="flex-1 bg-green-600 hover:bg-green-700 text-white border-0 transition-all duration-300 hover:shadow-lg hover:shadow-green-900/30 hover:scale-105"
+                                  onClick={() => {
+                                    if (!item.finderPhone) return;
+                                    const cleanPhone = item.finderPhone.replace(
+                                      /[^\d+]/g,
+                                      ""
+                                    );
+                                    const message = encodeURIComponent(
+                                      `Hi! I saw your lost & found posting for "${item.title}". Is it still available?`
+                                    );
+                                    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${message}`;
+                                    window.open(whatsappUrl, "_blank");
+                                  }}
+                                >
+                                  <WhatsAppIcon className="w-3 h-3 mr-1 group-hover:scale-110 transition-transform duration-300" />
+                                  WhatsApp
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all duration-300 hover:shadow-lg hover:shadow-zinc-900/30 hover:scale-105"
+                                  onClick={() => {
+                                    if (!item.finderPhone) return;
+                                    const cleanPhone = item.finderPhone.replace(
+                                      /[^\d+]/g,
+                                      ""
+                                    );
+                                    window.open(`tel:${cleanPhone}`, "_self");
+                                  }}
+                                >
+                                  <Phone className="w-3 h-3 mr-1 group-hover:scale-110 transition-transform duration-300" />
+                                  Call
+                                </Button>
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {item.status === "completed" && (
+                          <div className="h-[70px]"></div> /* Placeholder to maintain card height */
                         )}
                       </div>
 

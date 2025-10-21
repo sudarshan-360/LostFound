@@ -86,6 +86,20 @@ export async function PUT(
         );
       }
 
+      // Enforce admin-only updates for Lost Room items or flag changes
+      if (item.isLostRoomItem && !user.isAdmin) {
+        return NextResponse.json(
+          { error: "Only admins can update Lost Room items" },
+          { status: 403 }
+        );
+      }
+      if (validatedData?.isLostRoomItem === true && !user.isAdmin) {
+        return NextResponse.json(
+          { error: "Only admins can mark items as Lost Room" },
+          { status: 403 }
+        );
+      }
+
       // Update item
       Object.assign(item, validatedData);
       item.updatedAt = new Date();
@@ -151,6 +165,14 @@ export async function DELETE(
       if (!checkOwnership(item.userId.toString(), user.id) && !user.isAdmin) {
         return NextResponse.json(
           { error: "You can only delete your own items" },
+          { status: 403 }
+        );
+      }
+
+      // Enforce admin-only delete for Lost Room items
+      if (item.isLostRoomItem && !user.isAdmin) {
+        return NextResponse.json(
+          { error: "Only admins can delete Lost Room items" },
           { status: 403 }
         );
       }
