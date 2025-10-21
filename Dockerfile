@@ -21,6 +21,7 @@ ENV NEXTAUTH_URL=http://localhost:3000
 ENV CLOUDINARY_CLOUD_NAME=dummy
 ENV CLOUDINARY_API_KEY=dummy
 ENV CLOUDINARY_API_SECRET=dummy
+ENV NODE_ENV=production
 
 # Build the application
 RUN npm run build
