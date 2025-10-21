@@ -64,7 +64,6 @@ RUN npm ci --only=production && npm cache clean --force
 
 # Copy built Next.js app
 COPY --from=builder --chown=nextjs:nextjs /app/.next ./.next
-COPY --from=builder --chown=nextjs:nextjs /app/public ./public
 COPY --from=builder --chown=nextjs:nextjs /app/server.js ./
 
 # Copy Python service
