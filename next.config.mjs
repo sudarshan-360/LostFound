@@ -9,10 +9,11 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  output: 'standalone',
   experimental: {
     // Disable optimizePackageImports to avoid vendor-chunks resolution issues in dev
     optimizePackageImports: [],
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;
