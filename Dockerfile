@@ -14,6 +14,14 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Set environment variables for build
+ENV MONGODB_URI=mongodb://localhost:27017/lostfound
+ENV NEXTAUTH_SECRET=build-secret-key
+ENV NEXTAUTH_URL=http://localhost:3000
+ENV CLOUDINARY_CLOUD_NAME=dummy
+ENV CLOUDINARY_API_KEY=dummy
+ENV CLOUDINARY_API_SECRET=dummy
+
 # Build the application
 RUN npm run build
 
