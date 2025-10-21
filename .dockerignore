@@ -7,11 +7,6 @@ yarn-error.log*
 # Testing
 coverage
 .nyc_output
-__tests__/**/*
-*.test.js
-*.test.ts
-*.spec.js
-*.spec.ts
 
 # Next.js
 .next/
