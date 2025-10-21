@@ -26,15 +26,15 @@ const nextConfig = {
       ...config.resolve.alias,
       "@": path.resolve(__dirname),
     };
-    
+
     // Ensure proper module resolution
-    config.resolve.extensions = ['.js', '.jsx', '.ts', '.tsx', '.json'];
-    
+    config.resolve.extensions = [".js", ".jsx", ".ts", ".tsx", ".json"];
+
     // Add fallback for modules
     config.resolve.fallback = {
       ...config.resolve.fallback,
     };
-    
+
     return config;
   },
 };
