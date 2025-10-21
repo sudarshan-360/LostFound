@@ -51,7 +51,8 @@ RUN apt-get update && apt-get install -y curl && \
 
 # Create non-root user
 RUN groupadd --system --gid 1001 nextjs && \
-    useradd --system --uid 1001 --gid nextjs --create-home /home/nextjs
+    useradd --system --uid 1001 --gid nextjs --home /home/nextjs --create-home nextjs
+
 
 # Copy Python dependencies from builder stage
 COPY --from=python-deps /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
