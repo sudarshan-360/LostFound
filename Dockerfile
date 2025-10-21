@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY yarn.lock* ./
+
 
 # Install all dependencies (including devDependencies needed for build)
 RUN npm ci
