@@ -20,11 +20,21 @@ const nextConfig = {
     // Disable optimizePackageImports to avoid vendor-chunks resolution issues in dev
     optimizePackageImports: [],
   },
-  webpack: (config) => {
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Add alias for @/lib imports
     config.resolve.alias = {
       ...config.resolve.alias,
       "@": path.resolve(__dirname),
     };
+    
+    // Ensure proper module resolution
+    config.resolve.extensions = ['.js', '.jsx', '.ts', '.tsx', '.json'];
+    
+    // Add fallback for modules
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+    };
+    
     return config;
   },
 };
