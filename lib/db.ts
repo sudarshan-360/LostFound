@@ -4,8 +4,11 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
   // During build time, use a dummy URI to prevent build failures
-  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE === 'phase-production-build') {
-    console.warn('MONGODB_URI not set during build, using dummy URI');
+  if (
+    process.env.NODE_ENV === "production" &&
+    process.env.NEXT_PHASE === "phase-production-build"
+  ) {
+    console.warn("MONGODB_URI not set during build, using dummy URI");
   } else {
     throw new Error(
       "Please define the MONGODB_URI environment variable inside .env.local"
@@ -31,8 +34,11 @@ if (!cached) {
 
 async function connectDB() {
   // During build time, skip database connection
-  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE === 'phase-production-build') {
-    console.warn('Skipping database connection during build phase');
+  if (
+    process.env.NODE_ENV === "production" &&
+    process.env.NEXT_PHASE === "phase-production-build"
+  ) {
+    console.warn("Skipping database connection during build phase");
     return null;
   }
 

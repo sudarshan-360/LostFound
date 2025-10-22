@@ -1,4 +1,5 @@
 // Reports API client
+// Base API configuration - use relative paths for Docker/EC2 deployment
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export interface Report {

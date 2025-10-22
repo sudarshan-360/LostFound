@@ -1,6 +1,6 @@
 // getSession import removed; unused
 
-// Base API configuration
+// Base API configuration - use relative paths for Docker/EC2 deployment
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 // API response types

@@ -7,6 +7,7 @@ import { matchLostItem, LostQuery } from "@/lib/similarityClient";
 import { addMatchJob } from "@/lib/matchQueue";
 import { z } from "zod";
 import mongoose from "mongoose";
+import { addCorsHeaders } from "@/lib/cors";
 
 // GET /api/lost - List lost items with search and filters
 export async function GET(request: NextRequest) {
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
       Item.countDocuments(query),
     ]);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       items,
       pagination: {
         total,
@@ -88,19 +89,22 @@ export async function GET(request: NextRequest) {
         pages: Math.ceil(total / limit),
       },
     });
+    return addCorsHeaders(response);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Invalid query parameters", details: error.errors },
         { status: 400 }
       );
+      return addCorsHeaders(response);
     }
 
     console.error("GET /api/lost error:", error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    return addCorsHeaders(response);
   }
 }
 
@@ -173,7 +177,7 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
       // Don't fail the request if FAISS fails
     }
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         message: "Lost item created successfully",
         item: item.toObject(),
@@ -182,18 +186,21 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
       },
       { status: 201 }
     );
+    return addCorsHeaders(response);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Validation failed", details: error.errors },
         { status: 400 }
       );
+      return addCorsHeaders(response);
     }
 
     console.error("POST /api/lost error:", error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    return addCorsHeaders(response);
   }
 });

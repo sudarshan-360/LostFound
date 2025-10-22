@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 import { requireAuth } from "@/lib/auth";
+import { addCorsHeaders } from "@/lib/cors";
 
 // Configure Cloudinary
 cloudinary.config({
@@ -114,13 +115,14 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
 
     const result = uploadResult;
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       message: "Image uploaded successfully",
       url: result.secure_url,
       publicId: result.public_id,
       width: result.width,
       height: result.height,
     });
+    return addCorsHeaders(response);
   } catch (error) {
     console.error("Upload error:", error);
 
@@ -147,7 +149,11 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
       }
     }
 
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    const response = NextResponse.json(
+      { error: errorMessage },
+      { status: 500 }
+    );
+    return addCorsHeaders(response);
   }
 });
 
@@ -194,6 +200,10 @@ export const DELETE = requireAuth(async (request: NextRequest) => {
       }
     }
 
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    const response = NextResponse.json(
+      { error: errorMessage },
+      { status: 500 }
+    );
+    return addCorsHeaders(response);
   }
 });

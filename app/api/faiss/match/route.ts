@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { matchLostItem, LostQuery } from "@/lib/similarityClient";
 import { requireAuth } from "@/lib/auth";
+import { addCorsHeaders } from "@/lib/cors";
 
 export const POST = requireAuth(async (request: NextRequest, user) => {
   try {
@@ -37,15 +38,17 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
       );
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: result.data,
     });
+    return addCorsHeaders(response);
   } catch (error) {
     console.error("Match error:", error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    return addCorsHeaders(response);
   }
 });

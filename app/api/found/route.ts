@@ -6,6 +6,7 @@ import { createItemSchema, itemQuerySchema } from "@/lib/validations";
 import { z } from "zod";
 import mongoose from "mongoose";
 import { addMatchJob } from "@/lib/matchQueue";
+import { addCorsHeaders } from "@/lib/cors";
 
 // GET /api/found - List found items with search and filters
 export async function GET(request: NextRequest) {
@@ -78,7 +79,7 @@ export async function GET(request: NextRequest) {
       Item.countDocuments(query),
     ]);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       items,
       pagination: {
         total,
@@ -87,19 +88,22 @@ export async function GET(request: NextRequest) {
         pages: Math.ceil(total / limit),
       },
     });
+    return addCorsHeaders(response);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Invalid query parameters", details: error.errors },
         { status: 400 }
       );
+      return addCorsHeaders(response);
     }
 
     console.error("GET /api/found error:", error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    return addCorsHeaders(response);
   }
 }
 
@@ -122,7 +126,8 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
           : body?.location,
       // Allow admins to skip description by providing a default
       description:
-        typeof body?.description === "string" && body.description.trim().length > 0
+        typeof body?.description === "string" &&
+        body.description.trim().length > 0
           ? body.description
           : user.isAdmin && body?.isLostRoomItem === true
           ? "Managed by Lost Room"
@@ -155,7 +160,7 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
 
     // FAISS removed: no indexing step required
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         message: "Found item created successfully",
         item: item.toObject(),
@@ -163,18 +168,21 @@ export const POST = requireAuth(async (request: NextRequest, user) => {
       },
       { status: 201 }
     );
+    return addCorsHeaders(response);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Validation failed", details: error.errors },
         { status: 400 }
       );
+      return addCorsHeaders(response);
     }
 
     console.error("POST /api/found error:", error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+    return addCorsHeaders(response);
   }
 });
