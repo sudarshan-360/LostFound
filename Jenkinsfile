@@ -20,6 +20,7 @@ pipeline {
             steps {
                 echo "📦 Installing Node.js dependencies..."
                 sh '''
+                    # Use PWD which is guaranteed to be the workspace directory
                     docker run --rm -v $PWD:/app -w /app $NODE_IMAGE \
                     sh -c "npm ci --cache /app/.npm"
                 '''
@@ -51,20 +52,9 @@ pipeline {
                     string(credentialsId: 'cloudinary-api-key', variable: 'CLOUDINARY_API_KEY'),
                     string(credentialsId: 'cloudinary-api-secret', variable: 'CLOUDINARY_API_SECRET')
                 ]) {
-                    sh """
-                        docker build \\
-                            --build-arg MONGODB_URI=\$MONGODB_URI \\
-                            --build-arg NEXTAUTH_URL=\$NEXTAUTH_URL \\
-                            --build-arg NEXTAUTH_SECRET=\$NEXTAUTH_SECRET \\
-                            --build-arg GOOGLE_CLIENT_ID=\$GOOGLE_CLIENT_ID \\
-                            --build-arg GOOGLE_CLIENT_SECRET=\$GOOGLE_CLIENT_SECRET \\
-                            --build-arg SMTP_USER=\$SMTP_USER \\
-                            --build-arg SMTP_PASS=\$SMTP_PASS \\
-                            --build-arg CLOUDINARY_CLOUD_NAME=\$CLOUDINARY_CLOUD_NAME \\
-                            --build-arg CLOUDINARY_API_KEY=\$CLOUDINARY_API_KEY \\
-                            --build-arg CLOUDINARY_API_SECRET=\$CLOUDINARY_API_SECRET \\
-                            -t lostfound-app .
-                    """
+                    // FIX: Consolidated the docker build command into one line
+                    // This avoids issues with shell line continuation and docker buildx
+                    sh "docker build --build-arg MONGODB_URI=\$MONGODB_URI --build-arg NEXTAUTH_URL=\$NEXTAUTH_URL --build-arg NEXTAUTH_SECRET=\$NEXTAUTH_SECRET --build-arg GOOGLE_CLIENT_ID=\$GOOGLE_CLIENT_ID --build-arg GOOGLE_CLIENT_SECRET=\$GOOGLE_CLIENT_SECRET --build-arg SMTP_USER=\$SMTP_USER --build-arg SMTP_PASS=\$SMTP_PASS --build-arg CLOUDINARY_CLOUD_NAME=\$CLOUDINARY_CLOUD_NAME --build-arg CLOUDINARY_API_KEY=\$CLOUDINARY_API_KEY --build-arg CLOUDINARY_API_SECRET=\$CLOUDINARY_API_SECRET -t lostfound-app ."
                 }
             }
         }
@@ -74,7 +64,7 @@ pipeline {
                 echo "📤 Pushing Docker image to Docker Hub..."
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh """
-                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                        echo "\$DOCKER_PASS" | docker login -u "\$DOCKER_USER" --password-stdin
                         docker tag lostfound-app sudan360/lostfound-app:latest
                         docker push sudan360/lostfound-app:latest
                     """
@@ -85,24 +75,45 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 echo "🚀 Deploying Docker container to EC2..."
-                withCredentials([sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'EC2_KEY', usernameVariable: 'EC2_USER')]) {
+                // FIX: Re-including application credentials here so they are in scope for the 'docker run -e' commands
+                withCredentials([
+                    sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'EC2_KEY', usernameVariable: 'EC2_USER'),
+                    string(credentialsId: 'mongodb-uri', variable: 'MONGODB_URI'),
+                    string(credentialsId: 'nextauth-url', variable: 'NEXTAUTH_URL'),
+                    string(credentialsId: 'nextauth-secret', variable: 'NEXTAUTH_SECRET'),
+                    string(credentialsId: 'google-client-id', variable: 'GOOGLE_CLIENT_ID'),
+                    string(credentialsId: 'google-client-secret', variable: 'GOOGLE_CLIENT_SECRET'),
+                    string(credentialsId: 'smtp-user', variable: 'SMTP_USER'),
+                    string(credentialsId: 'smtp-pass', variable: 'SMTP_PASS'),
+                    string(credentialsId: 'cloudinary-cloud-name', variable: 'CLOUDINARY_CLOUD_NAME'),
+                    string(credentialsId: 'cloudinary-api-key', variable: 'CLOUDINARY_API_KEY'),
+                    string(credentialsId: 'cloudinary-api-secret', variable: 'CLOUDINARY_API_SECRET')
+                ]) {
                     sh """
-                        ssh -i \$EC2_KEY \$EC2_USER@3.110.45.140 \\
-                        "docker pull sudan360/lostfound-app:latest && \\
-                         docker stop lostfound || true && \\
-                         docker rm lostfound || true && \\
-                         docker run -d -p 3000:3000 --name lostfound \\
-                         -e MONGODB_URI='\$MONGODB_URI' \\
-                         -e NEXTAUTH_URL='\$NEXTAUTH_URL' \\
-                         -e NEXTAUTH_SECRET='\$NEXTAUTH_SECRET' \\
-                         -e GOOGLE_CLIENT_ID='\$GOOGLE_CLIENT_ID' \\
-                         -e GOOGLE_CLIENT_SECRET='\$GOOGLE_CLIENT_SECRET' \\
-                         -e SMTP_USER='\$SMTP_USER' \\
-                         -e SMTP_PASS='\$SMTP_PASS' \\
-                         -e CLOUDINARY_CLOUD_NAME='\$CLOUDINARY_CLOUD_NAME' \\
-                         -e CLOUDINARY_API_KEY='\$CLOUDINARY_API_KEY' \\
-                         -e CLOUDINARY_API_SECRET='\$CLOUDINARY_API_SECRET' \\
-                         lostfound-app:latest"
+                        # Use single quotes around the remote command to prevent Jenkins from trying to interpolate \$ variables
+                        # that are meant for the remote shell (except for \$EC2_KEY and \$EC2_USER, which must be interpolated by Jenkins)
+                        ssh -i \$EC2_KEY \$EC2_USER@3.110.45.140 '
+                            echo "Pulling latest image..."
+                            docker pull sudan360/lostfound-app:latest
+                            
+                            echo "Stopping and removing old container (if exists)..."
+                            docker stop lostfound || true
+                            docker rm lostfound || true
+                            
+                            echo "Starting new container..."
+                            docker run -d -p 3000:3000 --name lostfound \\
+                            -e MONGODB_URI="${MONGODB_URI}" \\
+                            -e NEXTAUTH_URL="${NEXTAUTH_URL}" \\
+                            -e NEXTAUTH_SECRET="${NEXTAUTH_SECRET}" \\
+                            -e GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID}" \\
+                            -e GOOGLE_CLIENT_SECRET="${GOOGLE_CLIENT_SECRET}" \\
+                            -e SMTP_USER="${SMTP_USER}" \\
+                            -e SMTP_PASS="${SMTP_PASS}" \\
+                            -e CLOUDINARY_CLOUD_NAME="${CLOUDINARY_CLOUD_NAME}" \\
+                            -e CLOUDINARY_API_KEY="${CLOUDINARY_API_KEY}" \\
+                            -e CLOUDINARY_API_SECRET="${CLOUDINARY_API_SECRET}" \\
+                            sudan360/lostfound-app:latest
+                        '
                     """
                 }
             }
