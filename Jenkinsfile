@@ -29,10 +29,19 @@ pipeline {
         stage('Build Next.js Frontend') {
             steps {
                 echo "🏗️ Building Next.js frontend..."
-                sh '''
-                    docker run --rm -v $PWD:/app -w /app $NODE_IMAGE \
-                    sh -c "npm run build"
-                '''
+                withCredentials([
+                    string(credentialsId: 'mongodb-uri', variable: 'MONGODB_URI'),
+                    string(credentialsId: 'nextauth-url', variable: 'NEXTAUTH_URL'),
+                    string(credentialsId: 'nextauth-secret', variable: 'NEXTAUTH_SECRET'),
+                    string(credentialsId: 'cloudinary-cloud-name', variable: 'CLOUDINARY_CLOUD_NAME'),
+                    string(credentialsId: 'cloudinary-api-key', variable: 'CLOUDINARY_API_KEY'),
+                    string(credentialsId: 'cloudinary-api-secret', variable: 'CLOUDINARY_API_SECRET')
+                ]) {
+                    sh '''
+                        docker run --rm -v $PWD:/app -w /app $NODE_IMAGE \
+                        sh -c "npm run build"
+                    '''
+                }
             }
         }
 
@@ -47,9 +56,9 @@ pipeline {
                     string(credentialsId: 'google-client-secret', variable: 'GOOGLE_CLIENT_SECRET'),
                     string(credentialsId: 'smtp-user', variable: 'SMTP_USER'),
                     string(credentialsId: 'smtp-pass', variable: 'SMTP_PASS'),
-                    string(credentialsId: 'cloudinary-name', variable: 'CLOUDINARY_CLOUD_NAME'),
-                    string(credentialsId: 'cloudinary-key', variable: 'CLOUDINARY_API_KEY'),
-                    string(credentialsId: 'cloudinary-secret', variable: 'CLOUDINARY_API_SECRET')
+                    string(credentialsId: 'cloudinary-cloud-name', variable: 'CLOUDINARY_CLOUD_NAME'),
+                    string(credentialsId: 'cloudinary-api-key', variable: 'CLOUDINARY_API_KEY'),
+                    string(credentialsId: 'cloudinary-api-secret', variable: 'CLOUDINARY_API_SECRET')
                 ]) {
                     sh '''
                         docker build --build-arg MONGODB_URI=$MONGODB_URI \
@@ -71,10 +80,13 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 echo "📤 Pushing Docker image to Docker Hub..."
-                sh '''
-                    docker tag lostfound-app sudan360/lostfound-app:latest
-                    docker push sudan360/lostfound-app:latest
-                '''
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        docker tag lostfound-app sudan360/lostfound-app:latest
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push sudan360/lostfound-app:latest
+                    '''
+                }
             }
         }
 
