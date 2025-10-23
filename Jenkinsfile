@@ -1,106 +1,104 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:18-bullseye' // Node 18 on Debian (supports apt if needed)
-            args '-v /var/run/docker.sock:/var/run/docker.sock' // So Jenkins can run Docker
-        }
-    }
+    agent any
 
     environment {
-        // Node.js Configuration
-        NODE_ENV = 'production'
-        NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"
-
-        // Docker Configuration
-        DOCKER_IMAGE_NAME = 'lostfound-app'
-        DOCKER_TAG = "${BUILD_NUMBER}"
-        DOCKER_REGISTRY = 'docker.io'
-        DOCKER_REPOSITORY = 'sudan360'
-
-        // EC2 Deployment Configuration
-        EC2_HOST = 'your-ec2-ip-or-domain' // replace with your EC2
-        EC2_USER = 'ubuntu'
-        EC2_PORT = '22'
-
-        // App Ports
-        APP_PORT = '3000'
-        PYTHON_PORT = '8000'
-        CONTAINER_NAME = 'lostfound-container'
-
-        // Secrets stored in Jenkins
-        MONGODB_URI = credentials('mongodb-uri')
-        NEXTAUTH_SECRET = credentials('nextauth-secret')
-        GOOGLE_CLIENT_ID = credentials('google-client-id')
-        GOOGLE_CLIENT_SECRET = credentials('google-client-secret')
-        SMTP_USER = credentials('smtp-user')
-        SMTP_PASS = credentials('smtp-pass')
-        CLOUDINARY_CLOUD_NAME = credentials('cloudinary-cloud-name')
-        CLOUDINARY_API_KEY = credentials('cloudinary-api-key')
-        CLOUDINARY_API_SECRET = credentials('cloudinary-api-secret')
+        NODE_IMAGE = 'node:18-bullseye'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo '🔄 Checking out source code from GitHub...'
-                checkout scm
-                echo '✅ Source code checkout completed'
+                echo "🔄 Checking out source code from GitHub..."
+                checkout([$class: 'GitSCM',
+                          branches: [[name: '*/master']],
+                          userRemoteConfigs: [[url: 'https://github.com/sudarshan-360/LostFound.git']]])
+                echo "✅ Source code checkout completed"
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                echo '📦 Installing Node.js dependencies...'
-                sh 'npm ci --cache ${NPM_CONFIG_CACHE}'
-
-                echo '🐍 Installing Python dependencies for CLIP service...'
+                echo "📦 Installing Node.js dependencies..."
                 sh '''
-                    cd python/clip_service
-                    python3 -m pip install --upgrade pip
-                    python3 -m pip install -r requirements.txt
+                    docker run --rm -v $PWD:/app -w /app $NODE_IMAGE \
+                    sh -c "npm ci --cache /app/.npm"
                 '''
             }
         }
 
         stage('Build Next.js Frontend') {
             steps {
-                echo '🏗️ Building Next.js frontend...'
-                sh 'npm run build'
+                echo "🏗️ Building Next.js frontend..."
+                sh '''
+                    docker run --rm -v $PWD:/app -w /app $NODE_IMAGE \
+                    sh -c "npm run build"
+                '''
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo '🐳 Building Docker image...'
-                sh """
-                    docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_TAG} .
-                    docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_TAG} ${DOCKER_IMAGE_NAME}:latest
-                """
+                echo "🐳 Building Docker image..."
+                withCredentials([
+                    string(credentialsId: 'mongodb-uri', variable: 'MONGODB_URI'),
+                    string(credentialsId: 'nextauth-url', variable: 'NEXTAUTH_URL'),
+                    string(credentialsId: 'nextauth-secret', variable: 'NEXTAUTH_SECRET'),
+                    string(credentialsId: 'google-client-id', variable: 'GOOGLE_CLIENT_ID'),
+                    string(credentialsId: 'google-client-secret', variable: 'GOOGLE_CLIENT_SECRET'),
+                    string(credentialsId: 'smtp-user', variable: 'SMTP_USER'),
+                    string(credentialsId: 'smtp-pass', variable: 'SMTP_PASS'),
+                    string(credentialsId: 'cloudinary-name', variable: 'CLOUDINARY_CLOUD_NAME'),
+                    string(credentialsId: 'cloudinary-key', variable: 'CLOUDINARY_API_KEY'),
+                    string(credentialsId: 'cloudinary-secret', variable: 'CLOUDINARY_API_SECRET')
+                ]) {
+                    sh '''
+                        docker build --build-arg MONGODB_URI=$MONGODB_URI \
+                                     --build-arg NEXTAUTH_URL=$NEXTAUTH_URL \
+                                     --build-arg NEXTAUTH_SECRET=$NEXTAUTH_SECRET \
+                                     --build-arg GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID \
+                                     --build-arg GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET \
+                                     --build-arg SMTP_USER=$SMTP_USER \
+                                     --build-arg SMTP_PASS=$SMTP_PASS \
+                                     --build-arg CLOUDINARY_CLOUD_NAME=$CLOUDINARY_CLOUD_NAME \
+                                     --build-arg CLOUDINARY_API_KEY=$CLOUDINARY_API_KEY \
+                                     --build-arg CLOUDINARY_API_SECRET=$CLOUDINARY_API_SECRET \
+                                     -t lostfound-app .
+                    '''
+                }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                echo '📤 Pushing Docker image to Docker Hub...'
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh """
-                        echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
-                        docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_TAG} \$DOCKER_USERNAME/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
-                        docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_TAG} \$DOCKER_USERNAME/${DOCKER_IMAGE_NAME}:latest
-                        docker push \$DOCKER_USERNAME/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
-                        docker push \$DOCKER_USERNAME/${DOCKER_IMAGE_NAME}:latest
-                    """
-                }
+                echo "📤 Pushing Docker image to Docker Hub..."
+                sh '''
+                    docker tag lostfound-app sudan360/lostfound-app:latest
+                    docker push sudan360/lostfound-app:latest
+                '''
             }
         }
 
         stage('Deploy to EC2') {
             steps {
-                echo '🚀 Deploying Docker container to EC2...'
-                withCredentials([sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
+                echo "🚀 Deploying Docker container to EC2..."
+                withCredentials([sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'EC2_KEY', usernameVariable: 'EC2_USER')]) {
                     sh """
-                        scp -i \$SSH_KEY -o StrictHostKeyChecking=no deploy.sh \$SSH_USER@${EC2_HOST}:/home/\$SSH_USER/
-                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$SSH_USER@${EC2_HOST} 'chmod +x deploy.sh && ./deploy.sh'
+                        ssh -i $EC2_KEY $EC2_USER@3.110.45.140 \\
+                        "docker pull sudan360/lostfound-app:latest && \\
+                         docker stop lostfound || true && \\
+                         docker rm lostfound || true && \\
+                         docker run -d -p 3000:3000 --name lostfound \\
+                         -e MONGODB_URI='$MONGODB_URI' \\
+                         -e NEXTAUTH_URL='$NEXTAUTH_URL' \\
+                         -e NEXTAUTH_SECRET='$NEXTAUTH_SECRET' \\
+                         -e GOOGLE_CLIENT_ID='$GOOGLE_CLIENT_ID' \\
+                         -e GOOGLE_CLIENT_SECRET='$GOOGLE_CLIENT_SECRET' \\
+                         -e SMTP_USER='$SMTP_USER' \\
+                         -e SMTP_PASS='$SMTP_PASS' \\
+                         -e CLOUDINARY_CLOUD_NAME='$CLOUDINARY_CLOUD_NAME' \\
+                         -e CLOUDINARY_API_KEY='$CLOUDINARY_API_KEY' \\
+                         -e CLOUDINARY_API_SECRET='$CLOUDINARY_API_SECRET' \\
+                         lostfound-app:latest"
                     """
                 }
             }
@@ -108,27 +106,25 @@ pipeline {
 
         stage('Post-Deployment Verification') {
             steps {
-                echo '🔍 Verifying deployment...'
-                withCredentials([sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
-                    sh """
-                        ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$SSH_USER@${EC2_HOST} \\
-                        'docker ps | grep ${CONTAINER_NAME}; docker logs --tail 20 ${CONTAINER_NAME}'
-                    """
-                }
+                echo "🔍 Verifying deployment..."
+                sh 'curl -I http://3.110.45.140:3000'
             }
         }
     }
 
     post {
-        success {
-            echo '🎉 Pipeline executed successfully! Application deployed.'
-        }
-        failure {
-            echo '❌ Pipeline failed! Check logs above.'
-        }
         always {
-            echo '🧹 Cleaning workspace...'
-            sh 'docker image prune -f; rm -rf ${NPM_CONFIG_CACHE}'
+            echo "🧹 Cleaning workspace..."
+            sh 'docker image prune -f'
+            cleanWs()
+        }
+
+        success {
+            echo "✅ Pipeline completed successfully!"
+        }
+
+        failure {
+            echo "❌ Pipeline failed! Check logs above."
         }
     }
 }
