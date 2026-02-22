@@ -93,7 +93,7 @@ export function StickyFooter() {
 
           {/* Motivational Quote */}
           <p
-            className="text-center text-lg sm:text-xl md:text-2xl font-bold leading-relaxed tracking-wide max-w-2xl mb-6"
+            className="text-center text-lg sm:text-xl md:text-2xl font-bold leading-relaxed tracking-wide max-w-2xl mb-6 antialiased"
             style={{ color: "#121113", lineHeight: 1.8 }}
           >
             &ldquo;KEDAIKARTHU KEDAIKAMA IRUKAATHU
@@ -103,20 +103,15 @@ export function StickyFooter() {
 
           {/* Signature */}
           <p
-            className="text-center text-sm sm:text-base italic mb-5"
-            style={{
-              color: "#121113",
-              opacity: 0.92,
-              letterSpacing: "0.12em",
-              fontFamily: "Georgia, 'Times New Roman', serif",
-            }}
+            className="text-center text-sm sm:text-base italic font-medium mb-5 tracking-wide antialiased"
+            style={{ color: "#121113", opacity: 0.92 }}
           >
             Thalaivar.
           </p>
 
           {/* Motivational Line */}
           <p
-            className="text-center text-sm sm:text-base font-bold"
+            className="text-center text-sm sm:text-base font-bold antialiased"
             style={{ color: "#121113", opacity: 0.9 }}
           >
             &ldquo;Believe. Definitely it will reach you. Don&apos;t worry.&rdquo;
