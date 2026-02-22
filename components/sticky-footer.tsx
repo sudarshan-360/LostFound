@@ -1,6 +1,8 @@
 "use client";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 export function StickyFooter() {
   const [isAtBottom, setIsAtBottom] = useState(false);
@@ -14,7 +16,8 @@ export function StickyFooter() {
           const scrollTop = window.scrollY;
           const windowHeight = window.innerHeight;
           const documentHeight = document.documentElement.scrollHeight;
-          const isNearBottom = scrollTop + windowHeight >= documentHeight - 100;
+          const isNearBottom =
+            scrollTop + windowHeight >= documentHeight - 100;
 
           setIsAtBottom(isNearBottom);
           ticking = false;
@@ -24,115 +27,100 @@ export function StickyFooter() {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll(); // Check initial state
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const linkClass =
+    "hover:opacity-80 cursor-pointer transition-colors duration-200";
 
   return (
     <AnimatePresence>
       {isAtBottom && (
         <motion.div
-          className="fixed z-50 bottom-0 left-0 w-full h-80 flex justify-center items-center"
+          className="fixed z-50 bottom-0 left-0 w-full py-12 px-6 flex flex-col justify-center items-center"
           style={{ backgroundColor: "#3b82f6" }}
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <div
-            className="relative overflow-hidden w-full h-full flex justify-end px-12 text-right items-start py-12"
-            style={{ color: "#121113" }}
-          >
-            <motion.div
-              className="flex flex-row space-x-12 sm:space-x-16 md:space-x-24 text-sm sm:text-lg md:text-xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+          {/* Footer Links */}
+          <div className="flex flex-row flex-wrap justify-center gap-x-6 sm:gap-x-8 md:gap-x-10 gap-y-2 text-sm sm:text-base mb-10">
+            <Link
+              href="/#pricing"
+              className={linkClass}
+              style={{ color: "#121113" }}
             >
-              <ul className="space-y-2">
-                <li
-                  className="hover:underline cursor-pointer transition-colors"
-                  style={{ color: "#121113" }}
-                  onMouseEnter={(e) =>
-                    ((e.target as HTMLElement).style.color =
-                      "rgba(18, 17, 19, 0.8)")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.target as HTMLElement).style.color = "#121113")
-                  }
-                >
-                  Home
-                </li>
-                <li
-                  className="hover:underline cursor-pointer transition-colors"
-                  style={{ color: "#121113" }}
-                  onMouseEnter={(e) =>
-                    ((e.target as HTMLElement).style.color =
-                      "rgba(18, 17, 19, 0.8)")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.target as HTMLElement).style.color = "#121113")
-                  }
-                >
-                  Docs
-                </li>
-                <li
-                  className="hover:underline cursor-pointer transition-colors"
-                  style={{ color: "#121113" }}
-                  onMouseEnter={(e) =>
-                    ((e.target as HTMLElement).style.color =
-                      "rgba(18, 17, 19, 0.8)")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.target as HTMLElement).style.color = "#121113")
-                  }
-                >
-                  Components
-                </li>
-              </ul>
-              <ul className="space-y-2">
-                <li
-                  className="hover:underline cursor-pointer transition-colors"
-                  style={{ color: "#121113" }}
-                  onMouseEnter={(e) =>
-                    ((e.target as HTMLElement).style.color =
-                      "rgba(18, 17, 19, 0.8)")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.target as HTMLElement).style.color = "#121113")
-                  }
-                >
-                  Github
-                </li>
-                <li
-                  className="hover:underline cursor-pointer transition-colors"
-                  style={{ color: "#121113" }}
-                  onMouseEnter={(e) =>
-                    ((e.target as HTMLElement).style.color =
-                      "rgba(18, 17, 19, 0.8)")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.target as HTMLElement).style.color = "#121113")
-                  }
-                >
-                  Twitter
-                </li>
-                <li
-                  className="hover:underline cursor-pointer transition-colors"
-                  style={{ color: "#121113" }}
-                  onMouseEnter={(e) =>
-                    ((e.target as HTMLElement).style.color =
-                      "rgba(18, 17, 19, 0.8)")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.target as HTMLElement).style.color = "#121113")
-                  }
-                >
-                  Discord
-                </li>
-              </ul>
-            </motion.div>
+              How It Works
+            </Link>
+            <Link
+              href="/report-lost"
+              className={linkClass}
+              style={{ color: "#121113" }}
+            >
+              Report Lost
+            </Link>
+            <Link
+              href="/report-found"
+              className={linkClass}
+              style={{ color: "#121113" }}
+            >
+              Report Found
+            </Link>
+            <Link
+              href="/browse-found"
+              className={linkClass}
+              style={{ color: "#121113" }}
+            >
+              Browse Items
+            </Link>
+            <Link
+              href="/myreports"
+              className={linkClass}
+              style={{ color: "#121113" }}
+            >
+              My Reports
+            </Link>
+            <Link
+              href="/#faq"
+              className={linkClass}
+              style={{ color: "#121113" }}
+            >
+              FAQs
+            </Link>
           </div>
+
+          {/* Motivational Quote */}
+          <p
+            className="text-center text-lg sm:text-xl md:text-2xl font-bold leading-relaxed tracking-wide max-w-2xl mb-6"
+            style={{ color: "#121113", lineHeight: 1.8 }}
+          >
+            &ldquo;KEDAIKARTHU KEDAIKAMA IRUKAATHU
+            <br />
+            KEDAIKAMA IRUKARTHU KEDAIKAATHU&rdquo;
+          </p>
+
+          {/* Signature */}
+          <p
+            className="text-center text-sm sm:text-base italic mb-5"
+            style={{
+              color: "#121113",
+              opacity: 0.92,
+              letterSpacing: "0.12em",
+              fontFamily: "Georgia, 'Times New Roman', serif",
+            }}
+          >
+            Thalaivar.
+          </p>
+
+          {/* Motivational Line */}
+          <p
+            className="text-center text-sm sm:text-base font-bold"
+            style={{ color: "#121113", opacity: 0.9 }}
+          >
+            &ldquo;Believe. Definitely it will reach you. Don&apos;t worry.&rdquo;
+          </p>
         </motion.div>
       )}
     </AnimatePresence>
