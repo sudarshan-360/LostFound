@@ -27,7 +27,7 @@ export function FAQSection() {
     {
       question: "How does the matching system work?",
       answer:
-        "Our AI-powered system analyzes item descriptions, locations, dates, and photos to find potential matches between lost and found items. When a potential match is found, both parties receive notifications to connect and verify the item.",
+        "Our smart-based system analyzes item descriptions, locations, dates, and photos to find potential matches between lost and found items. When a potential match is found, both parties receive notifications to connect and verify the item. AI coming soon.",
     },
     {
       question: "Is this service only for VIT students?",

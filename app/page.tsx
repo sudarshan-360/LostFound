@@ -23,12 +23,19 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    let rafId: number;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 100);
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        setIsScrolled(window.scrollY > 100);
+      });
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(rafId);
+    };
   }, []);
 
   const handleMobileNavClick = (elementId: string) => {
@@ -61,18 +68,12 @@ export default function Home() {
 
         {/* Desktop Header */}
         <header
-          className={`sticky top-4 z-[9999] mx-auto hidden w-full flex-row items-center justify-between self-start rounded-full bg-background/50 md:flex backdrop-blur-sm border border-border/50 shadow-lg transition-all duration-300 ${
+          className={`sticky top-4 z-[9999] mx-auto hidden w-full flex-row items-center justify-between gap-4 self-start rounded-full bg-background/50 md:flex backdrop-blur-sm border border-border/50 shadow-lg transition-all duration-300 ${
             isScrolled ? "max-w-3xl px-2 py-2" : "max-w-5xl px-4 py-2"
           }`}
-          style={{
-            willChange: "transform",
-            transform: "translateZ(0)",
-            backfaceVisibility: "hidden",
-            perspective: "1000px",
-          }}
         >
           <div
-            className={`z-50 flex items-center justify-center gap-2 transition-all duration-300 ${
+            className={`flex shrink-0 items-center justify-center gap-2 transition-all duration-300 ${
               isScrolled ? "ml-2" : ""
             }`}
           >
@@ -104,18 +105,18 @@ export default function Home() {
             )}
           </div>
 
-          <div
-            className={`absolute inset-0 hidden flex-1 flex-row items-center space-x-2 text-sm font-medium text-muted-foreground transition duration-200 hover:text-foreground md:flex md:space-x-2 ${
-              isScrolled ? "justify-end pr-4" : "justify-center"
+          <nav
+            className={`hidden flex-1 min-w-0 flex-row items-center justify-center gap-2 text-sm font-medium text-muted-foreground md:flex ${
+              isScrolled ? "justify-end pr-2" : ""
             }`}
           >
             <a
-              className="relative px-4 py-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              className="shrink-0 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               onClick={(e) => {
                 e.preventDefault();
                 const element = document.getElementById("pricing");
                 if (element) {
-                  const headerOffset = 120; // Account for sticky header height + margin
+                  const headerOffset = 120;
                   const elementPosition =
                     element.getBoundingClientRect().top + window.pageYOffset;
                   const offsetPosition = elementPosition - headerOffset;
@@ -127,23 +128,23 @@ export default function Home() {
                 }
               }}
             >
-              <span className="relative z-20">How It Works</span>
+              How It Works
             </a>
             <Link
               href="/report-lost"
-              className="relative px-4 py-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              className="shrink-0 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors"
             >
-              <span className="relative z-20">Report Lost</span>
+              Report Lost
             </Link>
             <Link
               href="/browse-found"
-              className="relative px-4 py-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              className="shrink-0 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors"
             >
-              <span className="relative z-20">Browse Found</span>
+              Browse Found
             </Link>
-          </div>
+          </nav>
 
-          <div className="flex items-center gap-4 relative z-50">
+          <div className="flex shrink-0 items-center gap-4">
             <AuthButtons />
           </div>
         </header>

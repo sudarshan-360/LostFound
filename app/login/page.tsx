@@ -33,7 +33,7 @@ export default function LoginPage() {
         console.error("Sign in error:", result.error);
         if (result.error === "AccessDenied") {
           setError(
-            "Access denied. Please use a valid VIT student email (e.g., @vit.ac.in, @vitstudent.ac.in, @vitbhopal.ac.in, etc.)."
+            "Access denied. Please use a valid VIT student email (@vit.ac.in or @vitstudent.ac.in)."
           );
         } else if (result.error === "OAuthAccountNotLinked") {
           setError(
@@ -161,8 +161,8 @@ export default function LoginPage() {
 
               <div className="text-center">
                 <p className="text-sm text-zinc-500">
-                  Only VIT student emails are allowed (e.g., @vit.ac.in,
-                  @vitstudent.ac.in, @vitbhopal.ac.in, etc.)
+                  Only VIT student emails are allowed (@vit.ac.in,
+                  @vitstudent.ac.in)
                 </p>
               </div>
             </div>
