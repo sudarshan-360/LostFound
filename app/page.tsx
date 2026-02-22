@@ -68,12 +68,12 @@ export default function Home() {
 
         {/* Desktop Header */}
         <header
-          className={`sticky top-4 z-[9999] mx-auto hidden w-full flex-row items-center justify-between gap-4 self-start rounded-full bg-background/50 md:flex backdrop-blur-sm border border-border/50 shadow-lg transition-all duration-300 ${
+          className={`sticky top-4 z-[9999] mx-auto hidden w-full grid grid-cols-3 items-center self-start rounded-full bg-background/50 md:grid backdrop-blur-sm border border-border/50 shadow-lg transition-all duration-300 ${
             isScrolled ? "max-w-3xl px-2 py-2" : "max-w-5xl px-4 py-2"
           }`}
         >
           <div
-            className={`flex shrink-0 items-center justify-center gap-2 transition-all duration-300 ${
+            className={`flex items-center gap-2 transition-all duration-300 ${
               isScrolled ? "ml-2" : ""
             }`}
           >
@@ -105,11 +105,7 @@ export default function Home() {
             )}
           </div>
 
-          <nav
-            className={`hidden flex-1 min-w-0 flex-row items-center justify-center gap-2 text-sm font-medium text-muted-foreground md:flex ${
-              isScrolled ? "justify-end pr-2" : ""
-            }`}
-          >
+          <nav className="hidden flex-row items-center justify-center gap-2 text-sm font-medium text-muted-foreground md:flex">
             <a
               className="shrink-0 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               onClick={(e) => {
@@ -144,7 +140,7 @@ export default function Home() {
             </Link>
           </nav>
 
-          <div className="flex shrink-0 items-center gap-4">
+          <div className="flex items-center justify-end gap-4">
             <AuthButtons />
           </div>
         </header>
