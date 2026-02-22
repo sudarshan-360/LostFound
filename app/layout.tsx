@@ -7,8 +7,6 @@ import SessionProviderWrapper from "@/components/session-provider";
 
 export const metadata: Metadata = {
   title: "VIT LOST AND FOUND",
-  description: "Created with v0",
-  generator: "v0.app",
 };
 
 export default function RootLayout({
