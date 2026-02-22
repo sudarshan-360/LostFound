@@ -597,9 +597,6 @@ export default function ReportLostItem() {
                     <Label htmlFor="contactEmail" className="text-white">
                       Email *
                     </Label>
-                    <p className="text-xs text-zinc-500 mb-1">
-                      You can edit this to use a different contact for this report.
-                    </p>
                     <div className="relative">
                       <Input
                         id="contactEmail"
