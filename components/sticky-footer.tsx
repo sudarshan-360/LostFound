@@ -16,8 +16,7 @@ export function StickyFooter() {
           const scrollTop = window.scrollY;
           const windowHeight = window.innerHeight;
           const documentHeight = document.documentElement.scrollHeight;
-          const isNearBottom =
-            scrollTop + windowHeight >= documentHeight - 100;
+          const isNearBottom = scrollTop + windowHeight >= documentHeight - 100;
 
           setIsAtBottom(isNearBottom);
           ticking = false;
@@ -31,93 +30,105 @@ export function StickyFooter() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const linkClass =
-    "hover:opacity-80 cursor-pointer transition-colors duration-200";
+  const col1Links = [
+    { label: "Home", href: "/" },
+    { label: "How it works", href: "/#pricing" },
+    { label: "Report lost", href: "/report-lost" },
+    { label: "Report found", href: "/report-found" },
+  ];
+
+  const col2Links = [
+    { label: "Docs", href: "/docs" },
+    { label: "Browse items", href: "/browse-found" },
+    { label: "My reports", href: "/myreports" },
+    { label: "FAQs", href: "/#faq" },
+  ];
+
+  const linkStyle: React.CSSProperties = {
+    color: "#ffffff",
+    fontSize: "19px",
+    fontWeight: 500,
+    lineHeight: 1.65,
+    textDecoration: "none",
+    display: "block",
+  };
 
   return (
-    <AnimatePresence>
-      {isAtBottom && (
-        <motion.div
-          className="fixed z-50 bottom-0 left-0 w-full py-12 px-6 flex flex-col justify-center items-center"
-          style={{ backgroundColor: "#3b82f6" }}
-          initial={{ y: "100%" }}
-          animate={{ y: 0 }}
-          exit={{ y: "100%" }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-        >
-          {/* Footer Links */}
-          <div className="flex flex-row flex-wrap justify-center gap-x-6 sm:gap-x-8 md:gap-x-10 gap-y-2 text-sm sm:text-base mb-10">
-            <Link
-              href="/#pricing"
-              className={linkClass}
-              style={{ color: "#121113" }}
-            >
-              How It Works
-            </Link>
-            <Link
-              href="/report-lost"
-              className={linkClass}
-              style={{ color: "#121113" }}
-            >
-              Report Lost
-            </Link>
-            <Link
-              href="/report-found"
-              className={linkClass}
-              style={{ color: "#121113" }}
-            >
-              Report Found
-            </Link>
-            <Link
-              href="/browse-found"
-              className={linkClass}
-              style={{ color: "#121113" }}
-            >
-              Browse Items
-            </Link>
-            <Link
-              href="/myreports"
-              className={linkClass}
-              style={{ color: "#121113" }}
-            >
-              My Reports
-            </Link>
-            <Link
-              href="/#faq"
-              className={linkClass}
-              style={{ color: "#121113" }}
-            >
-              FAQs
-            </Link>
-          </div>
+    <>
+      {/* Override browser visited/active pseudo-classes so links stay white */}
+      <style>{`
+        .sf-link,
+        .sf-link:visited,
+        .sf-link:active,
+        .sf-link:focus {
+          color: #ffffff !important;
+          text-decoration: none !important;
+        }
+        .sf-link { transition: opacity 0.15s ease; }
+        .sf-link:hover { opacity: 0.55; }
+      `}</style>
 
-          {/* Motivational Quote */}
-          <p
-            className="text-center text-lg sm:text-xl md:text-2xl font-bold leading-relaxed tracking-wide max-w-2xl mb-6 antialiased"
-            style={{ color: "#121113", lineHeight: 1.8 }}
+      <AnimatePresence>
+        {isAtBottom && (
+          <motion.footer
+            className="fixed z-50 bottom-0 left-0 w-full"
+            style={{
+              backgroundColor: "#3b82f6",
+              fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif",
+            }}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
           >
-            &ldquo;KEDAIKARTHU KEDAIKAMA IRUKAATHU
-            <br />
-            KEDAIKAMA IRUKARTHU KEDAIKAATHU&rdquo;
-          </p>
+            {/* Left-anchored — no mx-auto */}
+            <div style={{ paddingLeft: "40px", paddingRight: "40px", paddingTop: "36px", paddingBottom: "32px" }}>
 
-          {/* Signature */}
-          <p
-            className="text-center text-sm sm:text-base italic font-medium mb-5 tracking-wide antialiased"
-            style={{ color: "#121113", opacity: 0.92 }}
-          >
-            Thalaivar.
-          </p>
+              {/* Two-column grid, pinned to left */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "200px 200px",
+                  justifyContent: "start",
+                  marginBottom: "24px",
+                }}
+              >
+                <div>
+                  {col1Links.map((link) => (
+                    <Link key={link.href} href={link.href} className="sf-link" style={linkStyle}>
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+                <div>
+                  {col2Links.map((link) => (
+                    <Link key={link.href} href={link.href} className="sf-link" style={linkStyle}>
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
 
-          {/* Motivational Line */}
-          <p
-            className="text-center text-sm sm:text-base font-bold antialiased"
-            style={{ color: "#121113", opacity: 0.9 }}
-          >
-            &ldquo;Believe. Definitely it will reach you. Don&apos;t worry.&rdquo;
-          </p>
-        </motion.div>
-      )}
-    </AnimatePresence>
+              {/* Quote */}
+              <p
+                style={{
+                  color: "#ffffff",
+                  opacity: 0.75,
+                  fontSize: "13px",
+                  fontWeight: 300,
+                  lineHeight: 1.5,
+                  margin: 0,
+                  letterSpacing: "0.01em",
+                }}
+              >
+                <strong>Kedaikarthu kedaikama irukaathu... — Thalaivar</strong>
+                <br />
+                <small>Believe. Definitely it will reach you. Don't worry.</small>
+              </p>
+            </div>
+          </motion.footer>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
