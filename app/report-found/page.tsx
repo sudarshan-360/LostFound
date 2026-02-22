@@ -309,6 +309,14 @@ export default function ReportFoundItem() {
       }
 
       const isAdmin = Boolean((session as any)?.user?.isAdmin);
+      if (!isAdmin && formData.finderPhone) {
+        const digits = formData.finderPhone.replace(/\D/g, "");
+        if (digits.length !== 10) {
+          setError("Phone number must be exactly 10 digits.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
 
       const itemData = {
         title: formData.itemName,
@@ -718,7 +726,7 @@ export default function ReportFoundItem() {
                       <Input
                         id="finderPhone"
                         type="tel"
-                        placeholder="+91 9876543210"
+                        placeholder=""
                         value={formData.finderPhone}
                         onChange={(e) =>
                           handleInputChange("finderPhone", e.target.value)

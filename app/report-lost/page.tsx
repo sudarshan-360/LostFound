@@ -267,6 +267,14 @@ export default function ReportLostItem() {
         setIsSubmitting(false);
         return;
       }
+      if (formData.contactPhone) {
+        const digits = formData.contactPhone.replace(/\D/g, "");
+        if (digits.length !== 10) {
+          setError("Phone number must be exactly 10 digits.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
 
       // Prepare item data
       const itemData = {
@@ -616,7 +624,7 @@ export default function ReportLostItem() {
                       <Input
                         id="contactPhone"
                         type="tel"
-                        placeholder="+91 XXXXX XXXXX"
+                        placeholder=""
                         value={formData.contactPhone}
                         onChange={(e) =>
                           handleInputChange("contactPhone", e.target.value)
