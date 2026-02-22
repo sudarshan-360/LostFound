@@ -342,9 +342,14 @@ export default function ItemDetailsPage({
           dateFound: apiItem.dateFound || "",
           dateLost: apiItem.dateLost || "",
           images: Array.isArray(apiItem.images)
-            ? apiItem.images.map((img) =>
-                typeof img === "string" ? img : (img as any).url || ""
-              )
+            ? apiItem.images
+                .map((img) => {
+                  if (typeof img === "string") return img;
+                  const obj = img as { url?: string; publicId?: string };
+                  if (obj.publicId) return `/api/images/${obj.publicId}`;
+                  return obj.url || "";
+                })
+                .filter(Boolean)
             : [],
           status: apiItem.status as "Available" | "Claimed" | "Removed",
           type: itemType,
@@ -532,6 +537,7 @@ export default function ItemDetailsPage({
                     width={800}
                     height={600}
                     sizes="(max-width: 1024px) 100vw, 66vw"
+                    unoptimized
                     className="w-full h-auto object-contain"
                   />
                   <div className="absolute top-4 right-4">

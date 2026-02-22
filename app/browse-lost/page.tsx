@@ -122,11 +122,16 @@ export default function BrowseLostItems() {
                   : item.status === "Claimed" || item.status === "Removed"
                   ? "resolved"
                   : "active";
-              // Extract images properly
+              // Extract images - use relative /api/images/:id for GridFS (works on any origin)
               const imageUrls = Array.isArray(item.images)
-                ? item.images.map((img) =>
-                    typeof img === "string" ? img : img.url || ""
-                  )
+                ? item.images
+                    .map((img) => {
+                      if (typeof img === "string") return img;
+                      const obj = img as { url?: string; publicId?: string };
+                      if (obj.publicId) return `/api/images/${obj.publicId}`;
+                      return obj.url || "";
+                    })
+                    .filter(Boolean)
                 : [];
 
               return {
@@ -875,11 +880,12 @@ export default function BrowseLostItems() {
                             typeof item.images[0] === "string"
                               ? item.images[0]
                               : (item.images[0] as { url: string })?.url ||
-                                "/placeholder.jpg"
+                                "/placeholder.svg"
                           }
                           alt={item.itemName || item.title || "Lost item"}
                           width={400}
                           height={200}
+                          unoptimized
                           className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
                         />
                       ) : (

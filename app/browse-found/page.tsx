@@ -248,11 +248,16 @@ export default function BrowseFoundItems() {
                 .replace(/[._-]+/g, " ")
                 .replace(/\b\w/g, (c) => c.toUpperCase());
 
-              // Extract images properly
+              // Extract images - use relative /api/images/:id for GridFS (works on any origin)
               const imageUrls = Array.isArray(item.images)
-                ? item.images.map((img) =>
-                    typeof img === "string" ? img : img.url || ""
-                  )
+                ? item.images
+                    .map((img) => {
+                      if (typeof img === "string") return img;
+                      const obj = img as { url?: string; publicId?: string };
+                      if (obj.publicId) return `/api/images/${obj.publicId}`;
+                      return obj.url || "";
+                    })
+                    .filter(Boolean)
                 : [];
 
               return {
@@ -511,9 +516,14 @@ export default function BrowseFoundItems() {
               ? apiItem.location
               : apiItem.location?.text) || "",
           images: Array.isArray(apiItem.images)
-            ? apiItem.images.map((img) =>
-                typeof img === "string" ? img : img.url || ""
-              )
+            ? apiItem.images
+                .map((img) => {
+                  if (typeof img === "string") return img;
+                  const obj = img as { url?: string; publicId?: string };
+                  if (obj.publicId) return `/api/images/${obj.publicId}`;
+                  return obj.url || "";
+                })
+                .filter(Boolean)
             : [],
           status: "active",
           type: "found" as const,
@@ -1086,17 +1096,18 @@ export default function BrowseFoundItems() {
 
                     {/* Image Section with Unified Status Badge */}
                     <div className="relative overflow-hidden">
-                      {Array.isArray(item.images) && item.images.length > 0 ? (
+                      {Array.isArray(item.images) && item.images.length > 0 && item.images[0] ? (
                         <Image
                           src={
                             typeof item.images[0] === "string"
                               ? item.images[0]
                               : (item.images[0] as { url: string })?.url ||
-                                "/placeholder.jpg"
+                                "/placeholder.svg"
                           }
                           alt={item.itemName || item.title || "Found item"}
                           width={400}
                           height={200}
+                          unoptimized
                           className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
                         />
                       ) : (

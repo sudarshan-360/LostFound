@@ -111,6 +111,17 @@ export default function MyReports() {
         const transformedReports: DisplayReport[] = response.data.items.map(
           (item: Report) => {
             const locationText = item.location?.text || "";
+            // Use relative /api/images/:id for GridFS (works on any origin)
+            const imageUrls = Array.isArray(item.images)
+              ? item.images
+                  .map((img) => {
+                    if (typeof img === "string") return img;
+                    const obj = img as { url?: string; publicId?: string };
+                    if (obj.publicId) return `/api/images/${obj.publicId}`;
+                    return obj.url || "";
+                  })
+                  .filter(Boolean)
+              : [];
 
             return {
               _id: item._id,
@@ -119,7 +130,7 @@ export default function MyReports() {
               category: item.category,
               status: item.status,
               contactInfo: item.contactInfo,
-              images: item.images,
+              images: imageUrls,
               createdAt: item.createdAt,
               updatedAt: item.updatedAt,
               itemName: item.title || "Untitled",
@@ -586,11 +597,12 @@ export default function MyReports() {
                           typeof report.images[0] === "string"
                             ? report.images[0]
                             : (report.images[0] as { url: string })?.url ||
-                              "/placeholder.jpg"
+                              "/placeholder.svg"
                         }
                         alt={report.itemName}
                         width={400}
                         height={200}
+                        unoptimized
                         className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
                       />
                     ) : (
