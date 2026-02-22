@@ -144,7 +144,7 @@ export default function Hero() {
                     <div className="border border-primary-foreground/20 bg-primary-foreground h-[40px] rounded-full flex items-center justify-center text-primary">
                       <p className="font-medium tracking-tight mr-3 ml-3 flex items-center gap-2 justify-center text-base">
                         <Search className="h-4 w-4" />
-                        Report Lost Item
+                        Browse Lost item
                       </p>
                     </div>
                     <div className="text-primary-foreground group-hover:ml-4 ease-in-out transition-all size-[24px] flex items-center justify-center rounded-full border-2 border-primary-foreground/20">

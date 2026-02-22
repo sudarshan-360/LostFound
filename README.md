@@ -308,3 +308,48 @@ Ensure all required environment variables are set for production:
 4. Add tests for new functionality
 5. Submit a pull request
 
+
+## MongoDB Connection & Troubleshooting
+
+This project uses a resilient MongoDB connection with SRV→non-SRV fallback. Configure both to be production-ready and to work on restricted networks (e.g., campus/hostel Wi‑Fi).
+
+1) .env.local configuration
+
+- Primary (SRV):
+  
+  ```env
+  # SRV connection
+  MONGODB_URI=mongodb+srv://<USERNAME>:<PASSWORD>@<CLUSTER>.mongodb.net/<DB>?retryWrites=true&w=majority&appName=<APP>
+  ```
+
+- Non‑SRV fallback (from Atlas UI → Drivers → "Connect using MongoDB Shell" → "I don’t have MongoDB Shell" → "Show connection string for older drivers"):
+  
+  ```env
+  # Non‑SRV fallback for restricted networks (no DNS SRV required)
+  MONGODB_URI_NOSRV=mongodb://<USERNAME>:<PASSWORD>@<HOST-00>:27017,<HOST-01>:27017,<HOST-02>:27017/<DB>?ssl=true&replicaSet=<REPLICA>&authSource=admin&retryWrites=true&w=majority
+  ```
+
+Notes:
+- Either `MONGODB_URI` or `MONGO_URI` is accepted; same for `*_NOSRV`.
+- Ensure the password is URL‑encoded (e.g., `P@$$` → `P%40%24%24`).
+
+2) Atlas IP whitelist
+
+- In Atlas → Network Access, add your public IP. For development or dynamic IPs, temporarily use `0.0.0.0/0` (consider security implications) or a VPN with a stable IP.
+
+3) Restricted networks
+
+- Some networks block SRV DNS lookups, causing errors like `ECONNREFUSED querySrv` or `ENOTFOUND`. In that case the app automatically falls back to `MONGODB_URI_NOSRV` if provided.
+- The app prefers IPv4 to avoid resolver issues.
+
+4) Graceful shutdown and observability
+
+- The connection logs `connected`, `error`, and `disconnected` events in development.
+- The server closes MongoDB connections on `SIGINT`/`SIGTERM`.
+
+5) Common pitfalls
+
+- Incorrect DB name in URI → authentication fails. Include `/your-db` in the URI.
+- Missing `authSource=admin` in non‑SRV URIs when using Atlas → auth errors.
+- Special characters in password not URL‑encoded → URI parse errors.
+
