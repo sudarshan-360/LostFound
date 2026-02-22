@@ -805,7 +805,7 @@ export default function BrowseLostItems() {
                           >
                             Lost
                           </SelectItem>
-                          <SelectItem
+                          {/* <SelectItem
                             value="resolved"
                             className="text-white hover:bg-zinc-800"
                           >
@@ -816,7 +816,7 @@ export default function BrowseLostItems() {
                             className="text-white hover:bg-zinc-800"
                           >
                             Completed
-                          </SelectItem>
+                          </SelectItem> */}
                         </SelectContent>
                       </Select>
                     </div>

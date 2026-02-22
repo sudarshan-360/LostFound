@@ -1027,7 +1027,7 @@ export default function BrowseFoundItems() {
                           >
                             Found
                           </SelectItem>
-                          <SelectItem
+                          {/* <SelectItem
                             value="claimed"
                             className="text-white hover:bg-zinc-800 focus:bg-zinc-800"
                           >
@@ -1038,7 +1038,7 @@ export default function BrowseFoundItems() {
                             className="text-white hover:bg-zinc-800 focus:bg-zinc-800"
                           >
                             Completed
-                          </SelectItem>
+                          </SelectItem> */}
                         </SelectContent>
                       </Select>
                     </div>
