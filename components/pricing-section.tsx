@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 const howItWorksSteps = [
   {
@@ -52,6 +53,7 @@ const howItWorksSteps = [
 
 export function HowItWorksSection() {
   const [hoveredStep, setHoveredStep] = useState<number | null>(null)
+  const router = useRouter()
 
   return (
     <section className="relative py-24 px-4">
@@ -149,12 +151,13 @@ export function HowItWorksSection() {
           className="mt-16 text-center"
         >
           <p className="text-muted-foreground mb-6">
-            Ready to get started? Join thousands of students already using our platform.
+            Start building a safer, smarter Lost & Found community at VIT.
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-8 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+            onClick={() => router.push("/browse-found")}
           >
             Start Finding Items →
           </motion.button>
