@@ -13,7 +13,7 @@ export async function middleware(request: NextRequest) {
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set(
       "callbackUrl",
-      `${request.nextUrl.pathname}${request.nextUrl.search}`,
+      `${request.nextUrl.pathname}${request.nextUrl.search}`
     );
     return NextResponse.redirect(loginUrl);
   }
@@ -24,4 +24,3 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/browse-found/:path*", "/browse-lost/:path*"],
 };
-

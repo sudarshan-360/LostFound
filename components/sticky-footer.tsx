@@ -16,8 +16,7 @@ export function StickyFooter() {
           const scrollTop = window.scrollY;
           const windowHeight = window.innerHeight;
           const documentHeight = document.documentElement.scrollHeight;
-          const isNearBottom =
-            scrollTop + windowHeight >= documentHeight - 100;
+          const isNearBottom = scrollTop + windowHeight >= documentHeight - 100;
 
           setIsAtBottom(isNearBottom);
           ticking = false;
@@ -39,7 +38,10 @@ export function StickyFooter() {
   ];
 
   const col2Links = [
-    { label: "Docs", href: "/docs" },
+    {
+      label: "Contact us",
+      href: "mailto:lostfound0744@gmail.com",
+    },
     { label: "Browse items", href: "/browse-found" },
     { label: "My reports", href: "/myreports" },
     { label: "FAQs", href: "/#faq" },
@@ -75,8 +77,7 @@ export function StickyFooter() {
             className="fixed z-50 bottom-0 left-0 w-full"
             style={{
               backgroundColor: "#3b82f6",
-              fontFamily:
-                "'Inter', 'SF Pro Display', system-ui, sans-serif",
+              fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif",
             }}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -118,16 +119,27 @@ export function StickyFooter() {
                 </div>
 
                 <div>
-                  {col2Links.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className="sf-link"
-                      style={linkStyle}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
+                  {col2Links.map((link) =>
+                    link.href.startsWith("mailto:") ? (
+                      <a
+                        key={link.href}
+                        href={link.href}
+                        className="sf-link"
+                        style={linkStyle}
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className="sf-link"
+                        style={linkStyle}
+                      >
+                        {link.label}
+                      </Link>
+                    )
+                  )}
                 </div>
               </div>
 
@@ -144,9 +156,7 @@ export function StickyFooter() {
                   textAlign: "right",
                 }}
               >
-                <strong>
-                  Kedaikarthu kedaikama irukaathu... — Thalaivar
-                </strong>
+                <strong>Kedaikarthu kedaikama irukaathu... — Thalaivar</strong>
                 <br />
                 <small>
                   Believe. Definitely it will reach you. Don't worry.
